@@ -1,0 +1,3357 @@
+
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/AdvanceScripts/UI_Librarys/main/Wally", true))()
+
+local Aimbot = library:CreateWindow('Main')
+Aimbot:Section("--== AimLock ==--")
+
+local e = Aimbot:Button("Custom Aimbot Key (A-Z)", function()
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X Aimbot!";
+	Text = "Credits to JohnnyDoe On WRD!. ";
+})
+        
+  
+_G.aimDebug = true --FOV Checker is still wonky - Keep this setting on or you can't have FOV checker on
+
+--Stuff you can customize
+local settings = {
+	Binds = {
+		Aimbot = "f",
+		Hide = "=" --[=] by default but is not required
+	},
+	Aimbot = {
+		FOV = 50, --The smaller the less space to lock on | 15 by default
+		Closest = false, --Targets closest player, otherwise does closest to mouse | False by default
+		HoldKey = true, --False by default
+		TeamCheck = false --False by default
+	},
+	Color = {
+		["CheckboxOff"] = Color3.fromRGB(255, 0, 0), --[255, 0, 0] by default (Red)
+		["CheckboxOn"] = Color3.fromRGB(0, 255, 0), --[0, 255, 0] by default (Green)
+		
+		["Border"] = Color3.fromRGB(235, 115, 17), --[235, 115, 17] by default
+		["Background"] = Color3.fromRGB(30, 30, 30), --[30, 30, 30] by default
+		["Text"] = Color3.fromRGB(255, 255, 255) --[255, 255, 255] by default
+	}
+}
+
+------------------------------
+----Stuff you don't touch:----
+------------------------------
+local Aimbot_SG = Instance.new("ScreenGui")
+
+local gPlayers = game:GetService("Players")
+local gPlr = gPlayers.LocalPlayer
+local plr = gPlr.Name
+local gUIS = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+local InputBegan, InputEnded, BindPressed, AimbotStepped
+
+local gotstring = 1
+local function getrandomstring()
+	gotstring = gotstring+666
+	local str = ""
+	local randomstring = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "g", "k", "l", "m", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+	"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?", "`", "$",
+	"0","1","2","3","4","5","6","7","8","9", }
+	local counting123 = 0
+	for i, v in ipairs(randomstring) do
+		counting123 = i
+	end
+	do
+		math.randomseed(tick()+gotstring)
+		for i = 3, math.random(1,100) do
+			math.randomseed(i+tick()+gotstring)
+			local oneortwo = math.random(1,2)
+			if oneortwo == 2 then
+				math.randomseed(i+tick()+gotstring)
+				str = str..""..randomstring[math.random(1, counting123)]
+			else
+				math.randomseed(i+tick()+gotstring)
+				str = str..""..string.upper(randomstring[math.random(1, counting123)])
+			end
+		end
+	end
+	return str
+end
+
+-----------------------------
+--------Actual Stuff:--------
+-----------------------------
+local AimbotSG_Name = "$?8??4V32HTT?B?T17O9IA282??I6A"
+local valid = nil
+
+if (settings.Binds.Aimbot and settings.Binds.Hide) then
+	valid = true
+	for i,v in pairs(settings) do
+		if (v == nil) then
+			valid = false
+			break
+		end
+	end
+end
+
+if (valid) then
+
+if (game.CoreGui:FindFirstChild(AimbotSG_Name)) then
+	warn("Attempted to open another aimbot GUI again!")
+	return
+end
+
+--=========================================================--
+
+local aimKey = settings.Binds.Aimbot:lower()
+local hideKey = settings.Binds.Hide:lower()
+
+-- Instances:
+local Title_Frame = Instance.new("Frame")
+local Title_Label = Instance.new("TextLabel")
+local Exit_BTN = Instance.new("TextButton")
+local Minimize_BTN = Instance.new("TextButton")
+local Aimbot_Frame = Instance.new("Frame")
+local HoldKey_CB = Instance.new("TextButton")
+local TeamCheck_CB = Instance.new("TextButton")
+local AimbotKey_TB = Instance.new("TextBox")
+local AimbotKey_Label = Instance.new("TextLabel")
+local HoldKey_Label = Instance.new("TextLabel")
+local CyclePart_BTN = Instance.new("TextButton")
+local Part_Label = Instance.new("TextLabel")
+local TeamCheck_Label = Instance.new("TextLabel")
+local Status_Label = Instance.new("TextLabel")
+
+--Properties:
+Aimbot_SG.Name = AimbotSG_Name
+Aimbot_SG.Parent = game:WaitForChild("CoreGui")
+Aimbot_SG.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Aimbot_SG.ResetOnSpawn = false
+
+Title_Frame.Name = getrandomstring()
+Title_Frame.Parent = Aimbot_SG
+Title_Frame.BackgroundColor3 = settings.Color.Border
+Title_Frame.BorderSizePixel = 0
+Title_Frame.Position = UDim2.new(0.0216195825, 0, 0.254411727, 0)
+Title_Frame.Size = UDim2.new(0, 225, 0, 25)
+Title_Frame.Active = true
+Title_Frame.Draggable = true
+
+Title_Label.Name = getrandomstring()
+Title_Label.Parent = Title_Frame
+Title_Label.BackgroundColor3 = settings.Color.Border
+Title_Label.BorderSizePixel = 0
+Title_Label.Position = UDim2.new(-0.0266666673, 0, 0, 0)
+Title_Label.Size = UDim2.new(0, 175, 0, 25)
+Title_Label.Font = Enum.Font.SourceSans
+Title_Label.Text = "           KAT! Aimbot"
+Title_Label.TextColor3 = settings.Color.Text
+Title_Label.TextScaled = true
+Title_Label.TextSize = 14.000
+Title_Label.TextWrapped = true
+
+Exit_BTN.Name = getrandomstring()
+Exit_BTN.Parent = Title_Frame
+Exit_BTN.BackgroundColor3 = settings.Color.Border
+Exit_BTN.BorderColor3 = Color3.fromRGB(27, 42, 53)
+Exit_BTN.BorderSizePixel = 0
+Exit_BTN.Position = UDim2.new(0.884444475, 0, 0, 0)
+Exit_BTN.Size = UDim2.new(0, 25, 0, 25)
+Exit_BTN.Font = Enum.Font.SourceSans
+Exit_BTN.Text = "X"
+Exit_BTN.TextColor3 = settings.Color.Text
+Exit_BTN.TextScaled = true
+Exit_BTN.TextSize = 14.000
+Exit_BTN.TextWrapped = true
+
+Minimize_BTN.Name = getrandomstring()
+Minimize_BTN.Parent = Title_Frame
+Minimize_BTN.BackgroundColor3 = settings.Color.Border
+Minimize_BTN.BorderColor3 = Color3.fromRGB(27, 42, 53)
+Minimize_BTN.BorderSizePixel = 0
+Minimize_BTN.Position = UDim2.new(0.773333371, 0, 0, 0)
+Minimize_BTN.Size = UDim2.new(0, 25, 0, 25)
+Minimize_BTN.Font = Enum.Font.SourceSans
+Minimize_BTN.Text = "-"
+Minimize_BTN.TextColor3 = settings.Color.Text
+Minimize_BTN.TextScaled = true
+Minimize_BTN.TextSize = 14.000
+Minimize_BTN.TextWrapped = true
+
+Aimbot_Frame.Name = getrandomstring()
+Aimbot_Frame.Parent = Title_Frame
+Aimbot_Frame.BackgroundColor3 = settings.Color.Background
+Aimbot_Frame.BorderSizePixel = 0
+Aimbot_Frame.Position = UDim2.new(-0.0266666673, 0, 0.976347685, 0)
+Aimbot_Frame.Size = UDim2.new(0, 230, 0, 216)
+
+--[[
+HoldKey_CB.Instance.Name = "lol"
+HoldKey_CB.Instance.Parent = Aimbot_Frame
+HoldKey_CB.Instance.BackgroundColor3 = settings.Color.CheckboxOff
+HoldKey_CB.Instance.BorderColor3 = settings.Color.Border
+HoldKey_CB.Instance.Position = UDim2.new(0.0400000066, 0, 0.474999994, 0)
+HoldKey_CB.Instance.Size = UDim2.new(0, 25, 0, 25)
+HoldKey_CB.Instance.Font = Enum.Font.SourceSans
+HoldKey_CB.Instance.Text = ""
+HoldKey_CB.Instance.TextColor3 = Color3.fromRGB(0, 0, 0)
+HoldKey_CB.Instance.TextSize = 14.000
+]]--
+--
+HoldKey_CB.Name = getrandomstring()
+HoldKey_CB.Parent = Aimbot_Frame
+HoldKey_CB.BackgroundColor3 = settings.Color.CheckboxOff
+HoldKey_CB.BorderColor3 = settings.Color.Border
+HoldKey_CB.Position = UDim2.new(0.0400000066, 0, 0.474999994, 0)
+HoldKey_CB.Size = UDim2.new(0, 25, 0, 25)
+HoldKey_CB.Font = Enum.Font.SourceSans
+HoldKey_CB.Text = ""
+HoldKey_CB.TextColor3 = Color3.fromRGB(0, 0, 0)
+HoldKey_CB.TextSize = 14.000
+--
+
+TeamCheck_CB.Name = getrandomstring()
+TeamCheck_CB.Parent = Aimbot_Frame
+TeamCheck_CB.BackgroundColor3 = settings.Color.CheckboxOff
+TeamCheck_CB.BorderColor3 = settings.Color.Border
+TeamCheck_CB.Position = UDim2.new(0.0400000066, 0, 0.637500048, 0)
+TeamCheck_CB.Size = UDim2.new(0, 25, 0, 25)
+TeamCheck_CB.Font = Enum.Font.SourceSans
+TeamCheck_CB.Text = ""
+TeamCheck_CB.TextColor3 = Color3.fromRGB(0, 0, 0)
+TeamCheck_CB.TextSize = 14.000
+
+AimbotKey_TB.Name = getrandomstring()
+AimbotKey_TB.Parent = Aimbot_Frame
+AimbotKey_TB.BackgroundColor3 = settings.Color.Text
+AimbotKey_TB.Position = UDim2.new(0.0400000066, 0, 0.0620370433, 0)
+AimbotKey_TB.Size = UDim2.new(0, 25, 0, 25)
+AimbotKey_TB.Font = Enum.Font.SourceSans
+AimbotKey_TB.Text = aimKey
+AimbotKey_TB.TextColor3 = Color3.fromRGB(0, 0, 0)
+AimbotKey_TB.TextSize = 17.000
+
+AimbotKey_Label.Name = getrandomstring()
+AimbotKey_Label.Parent = Aimbot_Frame
+AimbotKey_Label.BackgroundColor3 = settings.Color.Background
+AimbotKey_Label.BorderSizePixel = 0
+AimbotKey_Label.Position = UDim2.new(0.186666653, 0, 0.0620370433, 0)
+AimbotKey_Label.Size = UDim2.new(0, 180, 0, 25)
+AimbotKey_Label.Font = Enum.Font.SourceSans
+AimbotKey_Label.Text = "Aimbot Key: "..aimKey
+AimbotKey_Label.TextColor3 = settings.Color.Text
+AimbotKey_Label.TextSize = 23.000
+AimbotKey_Label.TextWrapped = true
+AimbotKey_Label.TextXAlignment = Enum.TextXAlignment.Left
+
+HoldKey_Label.Name = getrandomstring()
+HoldKey_Label.Parent = Aimbot_Frame
+HoldKey_Label.BackgroundColor3 = settings.Color.Background
+HoldKey_Label.BorderSizePixel = 0
+HoldKey_Label.Position = UDim2.new(0.186666653, 0, 0.474999994, 0)
+HoldKey_Label.Size = UDim2.new(0, 180, 0, 25)
+HoldKey_Label.Font = Enum.Font.SourceSans
+HoldKey_Label.Text = "Hold Key"
+HoldKey_Label.TextColor3 = settings.Color.Text
+HoldKey_Label.TextSize = 23.000
+HoldKey_Label.TextWrapped = true
+HoldKey_Label.TextXAlignment = Enum.TextXAlignment.Left
+
+CyclePart_BTN.Name = getrandomstring()
+CyclePart_BTN.Parent = Aimbot_Frame
+CyclePart_BTN.BackgroundColor3 = settings.Color.Background
+CyclePart_BTN.BorderColor3 = settings.Color.Text
+CyclePart_BTN.Position = UDim2.new(0.0400000066, 0, 0.213888898, 0)
+CyclePart_BTN.Size = UDim2.new(0, 25, 0, 25)
+CyclePart_BTN.Font = Enum.Font.SourceSans
+CyclePart_BTN.Text = ""
+CyclePart_BTN.TextColor3 = Color3.fromRGB(0, 0, 0)
+CyclePart_BTN.TextSize = 14.000
+
+Part_Label.Name = getrandomstring()
+Part_Label.Parent = Aimbot_Frame
+Part_Label.BackgroundColor3 = settings.Color.Background
+Part_Label.BorderSizePixel = 0
+Part_Label.Position = UDim2.new(0.186666653, 0, 0.213888928, 0)
+Part_Label.Size = UDim2.new(0, 180, 0, 25)
+Part_Label.Font = Enum.Font.SourceSans
+Part_Label.Text = "Part: Head"
+Part_Label.TextColor3 = settings.Color.Text
+Part_Label.TextSize = 23.000
+Part_Label.TextWrapped = true
+Part_Label.TextXAlignment = Enum.TextXAlignment.Left
+
+TeamCheck_Label.Name = getrandomstring()
+TeamCheck_Label.Parent = Aimbot_Frame
+TeamCheck_Label.BackgroundColor3 = settings.Color.Background
+TeamCheck_Label.BorderSizePixel = 0
+TeamCheck_Label.Position = UDim2.new(0.186666653, 0, 0.637499988, 0)
+TeamCheck_Label.Size = UDim2.new(0, 180, 0, 25)
+TeamCheck_Label.Font = Enum.Font.SourceSans
+TeamCheck_Label.Text = "Team Check"
+TeamCheck_Label.TextColor3 = settings.Color.Text
+TeamCheck_Label.TextSize = 23.000
+TeamCheck_Label.TextWrapped = true
+TeamCheck_Label.TextXAlignment = Enum.TextXAlignment.Left
+
+Status_Label.Name = getrandomstring()
+Status_Label.Parent = Aimbot_Frame
+Status_Label.BackgroundColor3 = settings.Color.Background
+Status_Label.BorderSizePixel = 0
+Status_Label.Position = UDim2.new(0.146666676, 0, 0.829166651, 0)
+Status_Label.Size = UDim2.new(0, 158, 0, 25)
+Status_Label.Font = Enum.Font.SourceSans
+Status_Label.Text = "Aimbot: Disabled"
+Status_Label.TextColor3 = settings.Color.Text
+Status_Label.TextSize = 25.000
+
+----------------------------------------
+------------Events and stuff:-----------
+----------------------------------------
+local HoldKey = settings.Aimbot.HoldKey
+local TeamCheck = settings.Aimbot.TeamCheck
+local AimbotStarted = nil
+
+if (HoldKey) then
+	HoldKey_CB.BackgroundColor3 = settings.Color.CheckboxOn
+end
+if (TeamCheck) then
+	TeamCheck_CB.BackgroundColor3 = settings.Color.CheckboxOn
+end
+
+function dispose()
+	if (AimbotStepped) then
+		AimbotStepped:Disconnect()
+	end
+	AimbotStarted = false
+	Status_Label.Text = "Aimbot: Disabled"
+end
+
+function playerRoot(playerChar)
+	if (playerChar) then --HRP/Torso: R6 | UpperTorso: R15
+		local root = playerChar:FindFirstChild("HumanoidRootPart") or playerChar:FindFirstChild("Torso") or
+			playerChar:FindFirstChild("UpperTorso")
+		return root
+	end
+	return nil
+end
+
+function getfovxyz(p0, p1, deg)
+	local x1, y1, z1 = p0:ToOrientation()
+	local cf = CFrame.new(p0.p, p1.p)
+	local x2, y2, z2 = cf:ToOrientation()
+	local d = math.deg
+	if (deg) then
+		return Vector3.new(d(x1 - x2), d(y1 - y2), d(z1 - z2))
+	else
+		return Vector3.new((x1 - x2), (y1 - y2), (z1 - z2))
+	end
+end
+
+function checkfov(part)
+	local fov = getfovxyz(Camera.CFrame, part.CFrame)
+	local angle = math.abs(fov.X) + math.abs(fov.Y)
+	return angle
+end
+
+Exit_BTN.MouseButton1Click:Connect(function()
+	dispose()
+	--InputBegan:Disconnect()
+	InputEnded:Disconnect()
+	BindPressed:Disconnect()
+	
+	Aimbot_SG:Destroy()
+end)
+
+Minimize_BTN.MouseButton1Click:Connect(function()
+	if (Aimbot_Frame.Visible) then
+		Aimbot_Frame.Visible = false
+	else
+		Aimbot_Frame.Visible = true
+	end
+end)
+
+local TargetPart = 1 --1 = Head | 2 = Root
+local otherParts = {"Left Arm", "Right Arm", "Left Leg", "Right Leg"}
+CyclePart_BTN.MouseButton1Click:Connect(function()
+	if (TargetPart == 1) then
+		TargetPart = 2
+		Part_Label.Text = "Part: Root (Center)"
+	elseif (TargetPart == 6) then
+		TargetPart = 1
+		Part_Label.Text = "Part: Head"
+	else
+		TargetPart = TargetPart + 1
+		Part_Label.Text = "Part: "..otherParts[TargetPart - 2]
+	end
+end)
+
+AimbotKey_TB:GetPropertyChangedSignal("Text"):Connect(function()
+	local text = AimbotKey_TB.Text
+	if (text ~= "") then
+		local firstChar = text:sub(1,1):lower()
+		aimKey = firstChar
+		
+		AimbotKey_TB.Text = firstChar
+		AimbotKey_Label.Text = "Aimbot Key: "..aimKey
+		AimbotKey_TB:ReleaseFocus()
+	end
+end)
+
+HoldKey_CB.MouseButton1Click:Connect(function()
+	if (HoldKey) then
+		HoldKey_CB.BackgroundColor3 = settings.Color.CheckboxOff
+		HoldKey = false
+	else
+		HoldKey_CB.BackgroundColor3 = settings.Color.CheckboxOn
+		HoldKey = true
+	end
+end)
+
+TeamCheck_CB.MouseButton1Click:Connect(function()
+	if (TeamCheck) then
+		TeamCheck_CB.BackgroundColor3 = settings.Color.CheckboxOff
+		TeamCheck = false
+	else
+		TeamCheck_CB.BackgroundColor3 = settings.Color.CheckboxOn
+		TeamCheck = true
+	end
+end)
+
+-----
+
+BindPressed = gPlr:GetMouse().KeyDown:Connect(function(key)
+	local keyValue = key:byte()
+	if (keyValue == aimKey:byte()) then
+		if (AimbotStarted and not HoldKey) then
+			dispose()
+			return
+		end
+		---
+		local mouse, playerTarget = gPlr:GetMouse(), nil
+		if (settings.Aimbot.Closest) then
+			local plrChar = gPlr.Character
+			local plrRoot = playerRoot(plrChar)
+			if (not plrChar or not playerRoot(plrChar)) then
+				playerTarget = nil
+				return
+			end
+			
+			local nearDist = math.huge
+			local nearest = nil
+			for _,target in pairs(gPlayers:GetPlayers()) do
+				if (target ~= gPlr and target.Character and playerRoot(target.Character)) then
+					local charDist = target:DistanceFromCharacter(plrRoot.Position)
+					if (charDist < nearDist) then
+						nearDist = charDist
+						nearest = target
+					end
+				end
+			end
+			playerTarget = nearest
+		else
+			if not (_G.aimDebug) then --If off, then defaults to closest player
+			--
+			local pos = mouse.Hit.p
+			local targetPos = Vector3.new(pos.X, pos.Y, pos.Z)
+			
+			local nearDist = math.huge
+			local nearest = nil
+			for _,target in pairs(gPlayers:GetPlayers()) do
+				if (target ~= gPlr and target.Character and playerRoot(target.Character)) then
+					local charDist = target:DistanceFromCharacter(targetPos)
+					if (charDist < nearDist) then
+						nearDist = charDist
+						nearest = target
+					end
+				end
+			end
+			
+			playerTarget = nearest
+			--
+			else --Experimental
+			--
+			local maxangle = math.rad(settings.Aimbot.FOV)
+			local closestToMouse = nil
+			for i,player in pairs(gPlayers:GetChildren()) do
+				local pChar = player.Character
+				if not (pChar) then return end
+				
+				local part = playerRoot(pChar) or pChar:FindFirstChild("Head")
+				if (player.Name ~= plr and part) then
+					local angle = checkfov(part)
+					if (angle <= maxangle) then
+						maxangle = angle
+						closestToMouse = player
+					end
+                end
+			end
+			playerTarget = closestToMouse
+			--
+			end
+		end
+		if (playerTarget == nil) then return end
+		AimbotStepped = game:GetService("RunService").RenderStepped:Connect(function()
+			if (AimbotStarted and playerTarget and playerTarget.Character) then
+				local part = nil
+				
+				--Check stuff
+				if (TargetPart == 1) then --Head
+					part = playerTarget.Character:FindFirstChild("Head")
+				elseif (TargetPart == 2) then --Root
+					part = playerRoot(playerTarget.Character)
+				else
+					part = playerTarget.Character:FindFirstChild(otherParts[TargetPart - 2])
+				end
+				
+				--Actual stuff now
+				if (part) then
+					
+					if (TeamCheck) then
+						if (playerTarget.Team ~= gPlr.Team) then
+							Camera.CoordinateFrame = CFrame.new(Camera.CoordinateFrame.p, part.CFrame.p)
+						end
+					else
+						Camera.CoordinateFrame = CFrame.new(Camera.CoordinateFrame.p, part.CFrame.p)
+					end
+				end
+			end
+		end)
+		---
+		Status_Label.Text = "Aimbot: Enabled"
+		AimbotStarted = true
+	elseif (keyValue == hideKey:byte()) then
+		if (Aimbot_Frame.Visible) then
+			Aimbot_Frame.Visible = false
+		else
+			Aimbot_Frame.Visible = true
+		end
+	end
+end)
+
+InputEnded = gUIS.InputEnded:Connect(function(key)
+	if (HoldKey and key.KeyCode.Value == aimKey:byte()) then
+		dispose()
+	end
+
+       
+      
+        
+        
+        
+        
+        end)
+
+print("Loaded JohnnyDoe's Aimbot GUI")
+
+else
+warn("Something in settings was invalid! Check your binds and color settings!")
+end
+end)
+
+
+local e = Aimbot:Button("Ctrl Aimbot", function()
+
+loadstring(game:HttpGet("https://pastebin.com/raw/uCSJY8we", true))()
+
+wait(0.3)
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X!";
+	Text = "Press Ctrl To Toggle Aimlock on and off. ";
+})
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X!";
+	Text = "Press Q To Change Target Part And ALT For Esp";
+})
+
+end)
+
+
+
+Aimbot:Section("--== Silent Aim ==--")
+
+local e = Aimbot:Button("Silent Aim #1", function()
+getgenv().SelectedPart = "Head"
+getgenv().VisibiltyCheck = false
+getgenv().TargetESP = false
+getgenv().FOV = 190
+getgenv().CircleVisibility = true
+getgenv().Distance = 500
+loadstring(game:HttpGet("https://pastebin.com/raw/U9J7vX6L", true))()
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X !";
+	Text = "This Silent Aim Is the best , Using more then 1 Silent aim may cause problems and lag";
+})
+end)
+
+
+local e = Aimbot:Button("Silent Aim #2", function()
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X !";
+	Text = "Great Silent Aim But A Bit Laggy! , Using more then 1 Silent aim may cause problems and lag";
+})
+loadstring(game:HttpGet("https://raw.githubusercontent.com/2dgeneralspam1/scripts-and-stuff/master/scripts/LoadstringVbyQoVG4Dx0m", true))()
+
+end)
+
+
+
+local e = Aimbot:Button("Silent Aim #3", function()
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X !";
+	Text = "This Is Bad (May Not Hit), Using more then 1 silent aim may cause problems!";
+})
+local refreshrate = 0.01
+ _G.toggled = true
+loadstring(game:HttpGet("https://raw.githubusercontent.com/venosu/kat/main/head.lua", true))()
+end)
+
+local e = Aimbot:Button("Silent Aim + Esp GUI", function()
+loadstring(game:HttpGet("https://pastebin.com/raw/aWNrkMtz", true))()
+end)
+
+Aimbot:Section("--== Cool Thingy ==--")
+
+local e = Aimbot:Button("Knife Aura", function()
+--Subscribe to Ducky Exploits
+function nearestPlayer()
+    local dist = math.huge
+    local ray
+    
+    for i,v in pairs(game.Players:GetChildren()) do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("Head") and not v.Character:FindFirstChild("ForceField") then
+            if v.Character.Humanoid.Health > 0 and v.Character:FindFirstChild("Head") then -- needed..
+                local newVec = (v.Character.Head.Position - game.Players.LocalPlayer.Character.Head.Position)
+                if newVec.magnitude < dist then
+                    local toRay = Ray.new(game.Players.LocalPlayer.Character.Head.Position, newVec)
+                    if not workspace:FindPartOnRayWithIgnoreList(toRay, {game.Players.LocalPlayer.Character, v.Character, workspace.WorldIgnore, workspace.CurrentCamera}) then
+                        dist = newVec.magnitude
+                        ray = toRay
+                    end
+                end
+            end
+        end
+    end
+    return ray
+end
+
+local ray
+
+function init()
+    local knife = game.Players.LocalPlayer.Character:WaitForChild("Knife")
+    local scr = getsenv(knife.KnifeServer.KnifeClient)
+    if scr then
+        local ir = scr.inputReleased
+        local u7 = debug.getupvalue(ir, 2)
+        local cam = debug.getupvalue(ir, 5)
+        debug.setupvalue(ir, 5, setmetatable({}, {
+            __index = function(t,k)
+                if k == "ScreenPointToRay" then
+                    if ray ~= nil then
+                        return function() return ray end
+                    end
+                end
+                return cam[k]
+            end
+        }))
+    
+        
+        while wait(.1) do
+            if game.Players.LocalPlayer.Character.Humanoid.Health == 0 then
+                break    
+            end
+            ray = nearestPlayer()
+            if ray then
+                scr.inputDown()
+                u7.ChargeStart = -math.huge
+                ir()
+            end
+        end
+    end
+end
+
+init()
+game.Players.LocalPlayer.CharacterAdded:connect(function()
+    print("hi")
+    wait()
+    init()
+end)
+end)
+
+local ESP = library:CreateWindow('ESP')
+
+
+ESP:Section("--== Visual ==--")
+
+
+local t = ESP:Toggle('Toggleable ESP', {flag = "toggle1"}, function()
+if toggle == false
+then toggle = true
+    
+    
+    
+    
+
+    
+    
+    shared.Visuals = { --// Configuration (Will load default settings if shared.Visuals doesn't exist.)
+    Enabled = false,
+    CrosshairEnabled = false,
+    Boxes = false,
+    Healthbar = false,
+    Tracers = false,
+    Info = false,
+    ShowAllyTeam = false,
+    UseTeamColor = false,
+    AllyColor = Color3.fromRGB(0, 255, 0),
+    EnemyColor = Color3.fromRGB(255, 0, 0),
+    Crosshair = {
+        Size = 5,
+        Thickness = 1.5,
+        Offset = 5
+    }
+}
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/coastss/releases/main/universal_visuals.lua"))()
+    else
+        toggle = false
+        
+        	local NotificationBindable = Instance.new("BindableFunction")
+	NotificationBindable.OnInvoke = callback
+	--
+	game.StarterGui:SetCore("SendNotification",  {
+		Title = "Lime X ESP";
+		Text = "This is currently in beta , Please try not to turn off/on esp multiple times since it can cause problems";
+		Icon = "";
+		Duration = 10;
+		Button1 = "OK";
+		Callback = NotificationBindable;
+	})
+        
+        shared.Visuals = { --// Configuration (Will load default settings if shared.Visuals doesn't exist.)
+    Enabled = true,
+    CrosshairEnabled = true,
+    Boxes = true,
+    Healthbar = true,
+    Tracers = true,
+    Info = true,
+    ShowAllyTeam = true,
+    UseTeamColor = true,
+    AllyColor = Color3.fromRGB(0, 255, 0),
+    EnemyColor = Color3.fromRGB(255, 0, 0),
+    Crosshair = {
+        Size = 5,
+        Thickness = 1.5,
+        Offset = 5
+    }
+}
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/coastss/releases/main/universal_visuals.lua"))()
+    
+        end
+
+
+end)
+
+local e = ESP:Button("Dark Hub Cracked Esp", function()
+local Config = {
+    Visuals = {
+        BoxEsp = true,
+        TracerEsp = true,
+        TracersOrigin = "Top", 
+        NameEsp = true,
+        DistanceEsp = false,
+        SkeletonEsp = false,
+        EnemyColor = Color3.fromRGB(255, 0, 0),
+        TeamColor = Color3.fromRGB(0, 255, 0),
+        MurdererColor = Color3.fromRGB(255, 0, 0)
+    }
+}
+
+local Funcs = {}
+function Funcs:IsAlive(player)
+    if player and player.Character and player.Character:FindFirstChild("Head") and
+            workspace:FindFirstChild(player.Character.Name)
+     then
+        return true
+    end
+end
+
+function Funcs:Round(number)
+    return math.floor(tonumber(number) + 0.5)
+end
+
+function Funcs:DrawSquare()
+    local Box = Drawing.new("Square")
+    Box.Color = Color3.fromRGB(190, 190, 0)
+    Box.Thickness = 0.5
+    Box.Filled = false
+    Box.Transparency = 1
+    return Box
+end
+
+function Funcs:DrawLine()
+    local line = Drawing.new("Line")
+    line.Color = Color3.new(190, 190, 0)
+    line.Thickness = 0.5
+    return line
+end
+
+function Funcs:DrawText()
+    local text = Drawing.new("Text")
+    text.Color = Color3.fromRGB(190, 190, 0)
+    text.Size = 20
+    text.Outline = true
+    text.Center = true
+    return text
+end
+
+local Services =
+    setmetatable(
+    {
+        LocalPlayer = game:GetService("Players").LocalPlayer,
+        Camera = workspace.CurrentCamera
+    },
+    {
+        __index = function(self, idx)
+            return rawget(self, idx) or game:GetService(idx)
+        end
+    }
+)
+
+function Funcs:AddEsp(player)
+    local Box = Funcs:DrawSquare()
+    local Tracer = Funcs:DrawLine()
+    local Name = Funcs:DrawText()
+    local Distance = Funcs:DrawText()
+    local SnapLines = Funcs:DrawLine()
+    local HeadLowerTorso = Funcs:DrawLine()
+    local NeckLeftUpper = Funcs:DrawLine()
+    local LeftUpperLeftLower = Funcs:DrawLine()
+    local NeckRightUpper = Funcs:DrawLine()
+    local RightUpperLeftLower = Funcs:DrawLine()
+    local LowerTorsoLeftUpper = Funcs:DrawLine()
+    local LeftLowerLeftUpper = Funcs:DrawLine()
+    local LowerTorsoRightUpper = Funcs:DrawLine()
+    local RightLowerRightUpper = Funcs:DrawLine()
+    Services.RunService.Stepped:Connect(
+        function()
+            if Funcs:IsAlive(player) and player.Character:FindFirstChild("HumanoidRootPart") then
+                local RootPosition, OnScreen =
+                    Services.Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                local HeadPosition =
+                    Services.Camera:WorldToViewportPoint(player.Character.Head.Position + Vector3.new(0, 0.5, 0))
+                local LegPosition =
+                    Services.Camera:WorldToViewportPoint(
+                    player.Character.HumanoidRootPart.Position - Vector3.new(0, 4, 0)
+                )
+                if Config.Visuals.BoxEsp then
+                    Box.Visible = OnScreen
+                    Box.Size = Vector2.new((2350 / RootPosition.Z) + 2.5, HeadPosition.Y - LegPosition.Y)
+                    Box.Position = Vector2.new((RootPosition.X - Box.Size.X / 2) - 1, RootPosition.Y - Box.Size.Y / 2)
+                else
+                    Box.Visible = false
+                end
+                if Config.Visuals.TracerEsp then
+                    Tracer.Visible = OnScreen
+                    if Config.Visuals.TracersOrigin == "Top" then
+                        Tracer.To = Vector2.new(Services.Camera.ViewportSize.X / 2, 0)
+                        Tracer.From =
+                            Vector2.new(
+                            Services.Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position).X - 1,
+                            RootPosition.Y + (HeadPosition.Y - LegPosition.Y) / 2
+                        )
+                    elseif Config.Visuals.TracersOrigin == "Middle" then
+                        Tracer.To = Vector2.new(Services.Camera.ViewportSize.X / 2, Services.Camera.ViewportSize.Y / 2)
+                        Tracer.From =
+                            Vector2.new(
+                            Services.Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position).X - 1,
+                            (RootPosition.Y + (HeadPosition.Y - LegPosition.Y) / 2) -
+                                ((HeadPosition.Y - LegPosition.Y) / 2)
+                        )
+                    elseif Config.Visuals.TracersOrigin == "Bottom" then
+                        Tracer.To = Vector2.new(Services.Camera.ViewportSize.X / 2, 1000)
+                        Tracer.From =
+                            Vector2.new(
+                            Services.Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position).X - 1,
+                            RootPosition.Y - (HeadPosition.Y - LegPosition.Y) / 2
+                        )
+                    elseif Config.Visuals.TracersOrigin == "Mouse" then
+                        Tracer.To = game:GetService("UserInputService"):GetMouseLocation()
+                        Tracer.From =
+                            Vector2.new(
+                            Services.Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position).X - 1,
+                            (RootPosition.Y + (HeadPosition.Y - LegPosition.Y) / 2) -
+                                ((HeadPosition.Y - LegPosition.Y) / 2)
+                        )
+                    end
+                else
+                    Tracer.Visible = false
+                end
+                if Config.Visuals.NameEsp then
+                    Name.Visible = OnScreen
+                    Name.Position =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y - 40
+                    )
+                    Name.Text = "[ " .. player.Name .. " ]"
+                else
+                    Name.Visible = false
+                end
+                if Config.Visuals.DistanceEsp and player.Character:FindFirstChild("Head") then
+                    Distance.Visible = OnScreen
+                    Distance.Position =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y - 25
+                    )
+                    Distance.Text =
+                        "[ " ..
+                        Funcs:Round(
+                            (game:GetService("Players").LocalPlayer.Character.Head.Position -
+                                player.Character.Head.Position).Magnitude
+                        ) ..
+                            " Studs ]"
+                else
+                    Distance.Visible = false
+                end
+                if Config.Visuals.SkeletonEsp then
+                    HeadLowerTorso.Visible = OnScreen
+                    HeadLowerTorso.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y
+                    )
+                    HeadLowerTorso.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).Y
+                    )
+                    NeckLeftUpper.Visible = OnScreen
+                    NeckLeftUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y +
+                            ((Services.Camera:WorldToViewportPoint(player.Character.UpperTorso.Position).Y -
+                                Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y) /
+                                3)
+                    )
+                    NeckLeftUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperArm.Position).Y
+                    )
+                    LeftUpperLeftLower.Visible = OnScreen
+                    LeftUpperLeftLower.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftLowerArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftLowerArm.Position).Y
+                    )
+                    LeftUpperLeftLower.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperArm.Position).Y
+                    )
+                    NeckRightUpper.Visible = OnScreen
+                    NeckRightUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y +
+                            ((Services.Camera:WorldToViewportPoint(player.Character.UpperTorso.Position).Y -
+                                Services.Camera:WorldToViewportPoint(player.Character.Head.Position).Y) /
+                                3)
+                    )
+                    NeckRightUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperArm.Position).Y
+                    )
+                    RightUpperLeftLower.Visible = OnScreen
+                    RightUpperLeftLower.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightLowerArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightLowerArm.Position).Y
+                    )
+                    RightUpperLeftLower.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperArm.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperArm.Position).Y
+                    )
+                    LowerTorsoLeftUpper.Visible = OnScreen
+                    LowerTorsoLeftUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).Y
+                    )
+                    LowerTorsoLeftUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperLeg.Position).Y
+                    )
+                    LeftLowerLeftUpper.Visible = OnScreen
+                    LeftLowerLeftUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftLowerLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftLowerLeg.Position).Y
+                    )
+                    LeftLowerLeftUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LeftUpperLeg.Position).Y
+                    )
+                    LowerTorsoRightUpper.Visible = OnScreen
+                    LowerTorsoRightUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightLowerLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightLowerLeg.Position).Y
+                    )
+                    LowerTorsoRightUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperLeg.Position).Y
+                    )
+                    RightLowerRightUpper.Visible = OnScreen
+                    RightLowerRightUpper.From =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.LowerTorso.Position).Y
+                    )
+                    RightLowerRightUpper.To =
+                        Vector2.new(
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperLeg.Position).X,
+                        Services.Camera:WorldToViewportPoint(player.Character.RightUpperLeg.Position).Y
+                    )
+                else
+                    HeadLowerTorso.Visible = false
+                    NeckLeftUpper.Visible = false
+                    LeftUpperLeftLower.Visible = false
+                    NeckRightUpper.Visible = false
+                    RightUpperLeftLower.Visible = false
+                    LowerTorsoLeftUpper.Visible = false
+                    LeftLowerLeftUpper.Visible = false
+                    LowerTorsoRightUpper.Visible = false
+                    RightLowerRightUpper.Visible = false
+                end
+                if game.Players.LocalPlayer.TeamColor ~= player.TeamColor then
+                    Box.Color = Config.Visuals.EnemyColor
+                    Tracer.Color = Config.Visuals.EnemyColor
+                    Name.Color = Config.Visuals.EnemyColor
+                    Distance.Color = Config.Visuals.EnemyColor
+                    HeadLowerTorso.Color = Config.Visuals.EnemyColor
+                    NeckLeftUpper.Color = Config.Visuals.EnemyColor
+                    LeftUpperLeftLower.Color = Config.Visuals.EnemyColor
+                    NeckRightUpper.Color = Config.Visuals.EnemyColor
+                    RightUpperLeftLower.Color = Config.Visuals.EnemyColor
+                    LowerTorsoLeftUpper.Color = Config.Visuals.EnemyColor
+                    LeftLowerLeftUpper.Color = Config.Visuals.EnemyColor
+                    LowerTorsoRightUpper.Color = Config.Visuals.EnemyColor
+                    RightLowerRightUpper.Color = Config.Visuals.EnemyColor
+                else
+                    Box.Color = Config.Visuals.TeamColor
+                    Tracer.Color = Config.Visuals.TeamColor
+                    Name.Color = Config.Visuals.TeamColor
+                    Distance.Color = Config.Visuals.TeamColor
+                    HeadLowerTorso.Color = Config.Visuals.TeamColor
+                    NeckLeftUpper.Color = Config.Visuals.TeamColor
+                    LeftUpperLeftLower.Color = Config.Visuals.TeamColor
+                    NeckRightUpper.Color = Config.Visuals.TeamColor
+                    RightUpperLeftLower.Color = Config.Visuals.TeamColor
+                    LowerTorsoLeftUpper.Color = Config.Visuals.TeamColor
+                    LeftLowerLeftUpper.Color = Config.Visuals.TeamColor
+                    LowerTorsoRightUpper.Color = Config.Visuals.TeamColor
+                    RightLowerRightUpper.Color = Config.Visuals.TeamColor
+                end
+            else
+                Box.Visible = false
+                Tracer.Visible = false
+                Name.Visible = false
+                Distance.Visible = false
+                HeadLowerTorso.Visible = false
+                NeckLeftUpper.Visible = false
+                LeftUpperLeftLower.Visible = false
+                NeckRightUpper.Visible = false
+                RightUpperLeftLower.Visible = false
+                LowerTorsoLeftUpper.Visible = false
+                LeftLowerLeftUpper.Visible = false
+                LowerTorsoRightUpper.Visible = false
+                RightLowerRightUpper.Visible = false
+            end
+        end
+    )
+end
+
+for i, v in pairs(Services.Players:GetPlayers()) do
+    if v ~= Services.LocalPlayer then
+        Funcs:AddEsp(v)
+    end
+end
+
+Services.Players.PlayerAdded:Connect(
+    function(player)
+        if v ~= Services.LocalPlayer then
+            Funcs:AddEsp(player)
+        end
+    end
+)
+
+VisualsW:Toggle('Boxs',function(state)
+    Config.Visuals.BoxEsp = state
+end)
+VisualsW:Toggle('Tracers',function(state)
+    Config.Visuals.TracerEsp = state
+end)
+VisualsW:Dropdown(
+  "Tracers Origin", {'Top','Middle','Bottom','Mouse'}, function(selected)
+    Config.Visuals.TracersOrigin = selected
+end)
+VisualsW:Toggle('Names',function(state)
+    Config.Visuals.NameEsp = state
+end)
+VisualsW:Toggle('Distance',function(state)
+    Config.Visuals.DistanceEsp = state
+end)
+VisualsW:Toggle('Skeletons',function(state)
+    Config.Visuals.SkeletonEsp = state
+end)
+VisualsW:Colorpicker(
+	"Team Color",
+	Color3.fromRGB(0, 255, 0),
+	function(Color)
+		Config.Visuals.TeamColor = Color
+	end
+)
+VisualsW:Colorpicker(
+	"Enemy Color",
+	Color3.fromRGB(255, 0, 0),
+	function(Color)
+		Config.Visuals.EnemyColor = Color
+	end
+)
+
+
+
+end)
+
+
+local e = ESP:Button("Lime X ESP", function()
+local custom_theme = {} --soon
+
+--Generated with Syntax's Converter, comet hub in the works! pastebin search coming soooon REEEEEEE.
+--Counted 33 (objects this time!!!)
+local function CreateInstance(cls,props)
+local inst = Instance.new(cls)
+for i,v in pairs(props) do
+inst[i] = v
+end
+return inst
+end
+
+local age1 = CreateInstance('ScreenGui',{DisplayOrder=0,Enabled=true,ResetOnSpawn=true,Name='age1', Parent=game.CoreGui})
+local p_visuals = CreateInstance('Frame',{Style=Enum.FrameStyle.Custom,Active=true,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=2,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 50, 0, 60),Rotation=0,Selectable=false,Size=UDim2.new(0, 200, 0, 254),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name = 'p_visuals',Parent = age1})
+local UIListLayout = CreateInstance('UIListLayout', {Padding = UDim.new(0, 1), FillDirection = Enum.FillDirection.Vertical, HorizontalAlignment = Enum.HorizontalAlignment.Left, SortOrder = Enum.SortOrder.LayoutOrder, VerticalAlignment = Enum.VerticalAlignment.Top, Name = 'UIListLayout', Parent = p_visuals })
+local title1 = CreateInstance('TextLabel',{Font=Enum.Font.GothamBlack,FontSize=Enum.FontSize.Size18,Text='Kat visuals',TextColor3=Color3.new(1, 1, 1),TextScaled=false,TextSize=18,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,Active=true,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, 0, 0, 24),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='title1',Parent = p_visuals})
+local b_b = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Bounding box',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_b',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_b})
+local b_f = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Fill alpha',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_f',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_f})
+local b_rt = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Enabled',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=t,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_rt',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='Off',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_rt})
+local b_tc = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Use TeamColor',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_tc',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_tc})
+local b_sn = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Show name',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_sn',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_sn})
+local b_sd = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Show distance',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_sd',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_sd})
+local b_sh = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Show health',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_sh',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='OFF',TextColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_sh})
+local b_ht = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Health type',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_ht',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Text',TextColor3=Color3.new(0, 1, 1),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_ht})
+local b_f_t = CreateInstance('TextButton',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Fill transparency',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,AutoButtonColor=true,Modal=false,Selected=false,Style=Enum.ButtonStyle.Custom,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_f_t',Parent = p_visuals})
+local v = CreateInstance('TextLabel',{Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,Text='1',TextColor3=Color3.new(0, 1, 1),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Right,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, 0, 0, 0),Rotation=0,Selectable=false,Size=UDim2.new(0, 18, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='v',Parent = b_f_t})
+local title1_2 = CreateInstance('TextLabel',{Font=Enum.Font.SourceSansBold,FontSize=Enum.FontSize.Size18,Text='ESP',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=18,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, 0, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='title1_2',Parent = p_visuals})
+local b_ct = CreateInstance('TextLabel',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Make Sure To Enable It',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_ct',Parent = p_visuals})
+local ct_b = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(0, 0, 1), PlaceholderText='', PlaceholderColor3=Color3.new(0, 0, 1),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=36,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -2, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ct_b',Parent = b_ct})
+local ct_g = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(0, 1, 0), PlaceholderText='', PlaceholderColor3=Color3.new(0, 1, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=36,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -29, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ct_g',Parent = b_ct})
+local ct_r = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(1, 0, 0), PlaceholderText='', PlaceholderColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=36,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -56, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ct_r',Parent = b_ct})
+local b_ce = CreateInstance('TextLabel',{Font=Enum.Font.SourceSans,FontSize=Enum.FontSize.Size18,Text='Enemy color',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=16,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 0, 0.498039),BackgroundTransparency=1,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=0,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 0, 0, 0),Rotation=0,Selectable=true,Size=UDim2.new(1, -2, 0, 18),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='b_ce',Parent = p_visuals})
+local ce_b = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(0, 0, 1), PlaceholderText='', PlaceholderColor3=Color3.new(0, 0, 1),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=true,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -2, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ce_b',Parent = b_ce})
+local ce_g = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(0, 1, 0), PlaceholderText='', PlaceholderColor3=Color3.new(0, 1, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=true,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -29, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ce_g',Parent = b_ce})
+local ce_r = CreateInstance('TextBox',{ClearTextOnFocus=true,Font=Enum.Font.Gotham,FontSize=Enum.FontSize.Size14,MultiLine=false,Text='',TextColor3=Color3.new(1, 0, 0), PlaceholderText='', PlaceholderColor3=Color3.new(1, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,Active=true,AnchorPoint=Vector2.new(1, 0),BackgroundColor3=Color3.new(0.121569, 0.12549, 0.172549),BackgroundTransparency=0,BorderColor3=Color3.new(1, 0, 0.498039),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(1, -56, 0, 2),Rotation=0,Selectable=true,Size=UDim2.new(0, 27, 0, 14),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=1,Name='ce_r',Parent = b_ce})
+local watermark = CreateInstance('TextLabel',{Font=Enum.Font.Code,FontSize=Enum.FontSize.Size14,Text='lamehaxx v0.01',TextColor3=Color3.new(0, 0, 0),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=1,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, 2, 0, -34),Rotation=0,Selectable=false,Size=UDim2.new(0, 200, 0, 20),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=20,Name='watermark',Parent = age1})
+local watermark1 = CreateInstance('TextLabel',{Font=Enum.Font.Code,FontSize=Enum.FontSize.Size14,Text='lamehaxx v0.01',TextColor3=Color3.new(1, 0, 0.498039),TextScaled=false,TextSize=14,TextStrokeColor3=Color3.new(0, 0, 0),TextStrokeTransparency=0,TextTransparency=0,TextWrapped=false,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Top,Active=false,AnchorPoint=Vector2.new(0, 0),BackgroundColor3=Color3.new(1, 1, 1),BackgroundTransparency=1,BorderColor3=Color3.new(0.105882, 0.164706, 0.207843),BorderSizePixel=1,ClipsDescendants=false,Draggable=false,Position=UDim2.new(0, -2, 0, -2),Rotation=0,Selectable=false,Size=UDim2.new(0, 200, 0, 20),SizeConstraint=Enum.SizeConstraint.RelativeXY,Visible=true,ZIndex=20,Name='watermark1',Parent = watermark})
+p_visuals.Draggable = true
+
+title1.LayoutOrder = 0 title1_2.LayoutOrder = 1
+b_b.LayoutOrder = 1 b_f.LayoutOrder = 2 b_f_t.LayoutOrder = 3 b_sd.LayoutOrder = 4 b_sn.LayoutOrder = 5 b_sh.LayoutOrder = 6 b_ht.LayoutOrder = 7 b_rt.LayoutOrder = 8 b_tc.LayoutOrder = 9 b_ct.LayoutOrder = 10 b_ce.LayoutOrder = 11
+
+local localplayer = game:GetService"Players".LocalPlayer
+local uis = game:GetService"UserInputService"
+
+local cheats = {
+b_b = false;
+b_f = false;
+b_f_t = 1;
+b_sd = false;
+b_sn = false;
+b_sh = false;
+b_ht = "Text";
+b_rt = false;
+b_tc = false;
+}
+
+local cheatsf = Instance.new("Folder", game.CoreGui) cheatsf.Name = "cheats"
+local espf = Instance.new("Folder", cheatsf) espf.Name = "esp"
+
+function addEsp(player)
+local bbg = Instance.new("BillboardGui", espf)
+bbg.Name = player.Name
+bbg.AlwaysOnTop = true
+bbg.Size = UDim2.new(4,0,5.4,0)
+bbg.ClipsDescendants = false
+
+local outlines = Instance.new("Frame", bbg)
+outlines.Size = UDim2.new(1,0,1,0)
+outlines.BorderSizePixel = 0
+outlines.BackgroundTransparency = 1
+local left = Instance.new("Frame", outlines)
+left.BorderSizePixel = 0
+left.Size = UDim2.new(0,1,1,0)
+local right = left:Clone()
+right.Parent = outlines
+right.Size = UDim2.new(0,-1,1,0)
+right.Position = UDim2.new(1,0,0,0)
+local up = left:Clone()
+up.Parent = outlines
+up.Size = UDim2.new(1,0,0,1)
+local down = left:Clone()
+down.Parent = outlines
+down.Size = UDim2.new(1,0,0,-1)
+down.Position = UDim2.new(0,0,1,0)
+
+local info = Instance.new("BillboardGui", bbg)
+info.Name = "info"
+info.Size = UDim2.new(3,0,0,54)
+info.StudsOffset = Vector3.new(3.6,-3,0)
+info.AlwaysOnTop = true
+info.ClipsDescendants = false
+local namelabel = Instance.new("TextLabel", info)
+namelabel.Name = "namelabel"
+namelabel.BackgroundTransparency = 1
+namelabel.TextStrokeTransparency = 0
+namelabel.TextXAlignment = Enum.TextXAlignment.Left
+namelabel.Size = UDim2.new(0,100,0,18)
+namelabel.Position = UDim2.new(0,0,0,0)
+namelabel.Text = player.Name
+local distancel = Instance.new("TextLabel", info)
+distancel.Name = "distancelabel"
+distancel.BackgroundTransparency = 1
+distancel.TextStrokeTransparency = 0
+distancel.TextXAlignment = Enum.TextXAlignment.Left
+distancel.Size = UDim2.new(0,100,0,18)
+distancel.Position = UDim2.new(0,0,0,18)
+local healthl = Instance.new("TextLabel", info)
+healthl.Name = "healthlabel"
+healthl.BackgroundTransparency = 1
+healthl.TextStrokeTransparency = 0
+healthl.TextXAlignment = Enum.TextXAlignment.Left
+healthl.Size = UDim2.new(0,100,0,18)
+healthl.Position = UDim2.new(0,0,0,36)
+
+local uill = Instance.new("UIListLayout", info)
+
+local forhealth = Instance.new("BillboardGui", bbg)
+forhealth.Name = "forhealth"
+forhealth.Size = UDim2.new(5,0,6,0)
+forhealth.AlwaysOnTop = true
+forhealth.ClipsDescendants = false
+
+local healthbar = Instance.new("Frame", forhealth)
+healthbar.Name = "healthbar"
+healthbar.BackgroundColor3 = Color3.fromRGB(40,40,40)
+healthbar.BorderColor3 = Color3.fromRGB(0,0,0)
+healthbar.Size = UDim2.new(0.04,0,0.9,0)
+healthbar.Position = UDim2.new(0,0,0.05,0)
+local bar = Instance.new("Frame", healthbar)
+bar.Name = "bar"
+bar.BorderSizePixel = 0
+bar.BackgroundColor3 = Color3.fromRGB(94,255,69)
+bar.AnchorPoint = Vector2.new(0,1)
+bar.Position = UDim2.new(0,0,1,0)
+bar.Size = UDim2.new(1,0,1,0)
+
+local co = coroutine.create(function()
+while wait(0.1) do
+if (player.Character and player.Character:FindFirstChild"HumanoidRootPart") then
+bbg.Adornee = player.Character.HumanoidRootPart
+info.Adornee = player.Character.HumanoidRootPart
+forhealth.Adornee = player.Character.HumanoidRootPart
+
+if (player.Team ~= localplayer.Team) then
+bbg.Enabled = true
+info.Enabled = true
+forhealth.Enabled = true
+end
+if player.Character:FindFirstChild("ForceField") then
+outlines.BackgroundTransparency = 0.4
+left.BackgroundTransparency = 0.4
+right.BackgroundTransparency = 0.4
+up.BackgroundTransparency = 0.4
+down.BackgroundTransparency = 0.4
+healthl.TextTransparency = 0.4
+healthl.TextStrokeTransparency = 0.8
+distancel.TextTransparency = 0.4
+distancel.TextStrokeTransparency = 0.8
+namelabel.TextTransparency = 0.4
+namelabel.TextStrokeTransparency = 0.8
+bar.BackgroundTransparency = 0.4
+healthbar.BackgroundTransparency = 0.8
+else
+outlines.BackgroundTransparency = 0
+left.BackgroundTransparency = 0
+right.BackgroundTransparency = 0
+up.BackgroundTransparency = 0
+down.BackgroundTransparency = 0
+healthl.TextTransparency = 0
+healthl.TextStrokeTransparency = 0
+distancel.TextTransparency = 0
+distancel.TextStrokeTransparency = 0
+namelabel.TextTransparency = 0
+namelabel.TextStrokeTransparency = 0
+bar.BackgroundTransparency = 0
+healthbar.BackgroundTransparency = 0
+end
+if cheats.b_b == true then
+outlines.Visible = true
+else
+outlines.Visible = false
+end
+if cheats.b_f == true then
+if player.Character:FindFirstChild("ForceField") then
+outlines.BackgroundTransparency = 0.9
+else
+outlines.BackgroundTransparency = cheats.b_f_t
+end
+else
+outlines.BackgroundTransparency = 1
+end
+if cheats.b_sh == true then
+if (player.Character:FindFirstChild"Humanoid") then
+healthl.Text = "Health: "..math.floor(player.Character:FindFirstChild"Humanoid".Health)
+healthbar.bar.Size = UDim2.new(1,0,player.Character:FindFirstChild"Humanoid".Health/player.Character:FindFirstChild"Humanoid".MaxHealth,0)
+end
+if cheats.b_ht == "Text" then
+healthbar.Visible = false
+healthl.Visible = true
+end
+if cheats.b_ht == "Bar" then
+healthl.Visible = false
+healthbar.Visible = true
+end
+if cheats.b_ht == "Both" then
+healthl.Visible = true
+healthbar.Visible = true
+end
+else
+healthl.Visible = false
+healthbar.Visible = false
+end
+if cheats.b_sn then
+namelabel.Visible = true
+else
+namelabel.Visible = false
+end
+if cheats.b_sd == true then
+distancel.Visible = true
+if (localplayer.Character and localplayer.Character:FindFirstChild"HumanoidRootPart") then
+distancel.Text = "Distance: "..math.floor(0.5+(localplayer.Character:FindFirstChild"HumanoidRootPart".Position - player.Character:FindFirstChild"HumanoidRootPart".Position).magnitude)
+end
+else
+distancel.Visible = false
+end
+if cheats.b_rt == true then
+if (player.Team == localplayer.Team) then
+bbg.Enabled = true
+info.Enabled = true
+forhealth.Enabled = true
+end
+else
+if (player.Team == localplayer.Team) then
+bbg.Enabled = false
+info.Enabled = false
+forhealth.Enabled = false
+end
+end
+if cheats.b_tc == true then
+outlines.BackgroundColor3 = player.TeamColor.Color
+left.BackgroundColor3 = player.TeamColor.Color
+right.BackgroundColor3 = player.TeamColor.Color
+up.BackgroundColor3 = player.TeamColor.Color
+down.BackgroundColor3 = player.TeamColor.Color
+healthl.TextColor3 = player.TeamColor.Color
+distancel.TextColor3 = player.TeamColor.Color
+namelabel.TextColor3 = player.TeamColor.Color
+else
+if (player.Team == localplayer.Team) then
+outlines.BackgroundColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+left.BackgroundColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+right.BackgroundColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+up.BackgroundColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+down.BackgroundColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+healthl.TextColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+distancel.TextColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+namelabel.TextColor3 = Color3.fromRGB(ct_r.Text, ct_g.Text, ct_b.Text)
+else
+outlines.BackgroundColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+left.BackgroundColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+right.BackgroundColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+up.BackgroundColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+down.BackgroundColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+healthl.TextColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+distancel.TextColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+namelabel.TextColor3 = Color3.fromRGB(ce_r.Text, ce_g.Text, ce_b.Text)
+end
+end
+end
+if not (game:GetService"Players":FindFirstChild(player.Name)) then
+print(player.Name.." has left. Clearing esp.")
+espf:FindFirstChild(player.Name):Destroy()
+coroutine.yield()
+end
+end
+end)
+coroutine.resume(co)
+end
+
+--main
+do
+wait(2)
+--menu buttons
+for _,button in pairs(age1:GetDescendants()) do
+if button:IsA"TextButton" then
+button.MouseButton1Click:connect(function()
+if button.Name == "b_f_t" then
+if cheats.b_f_t >= 0 then
+cheats.b_f_t = cheats.b_f_t+0.1
+if cheats.b_f_t > 1 then
+cheats.b_f_t = 0
+end
+end
+button.v.Text = cheats.b_f_t
+elseif button.Name == "b_ht" then
+if cheats.b_ht == "Text" then
+cheats.b_ht = "Bar"
+elseif cheats.b_ht == "Bar" then
+cheats.b_ht = "Both"
+else
+cheats.b_ht = "Text"
+end
+button.v.Text = cheats.b_ht
+else
+if cheats[button.Name] == true then
+cheats[button.Name] = false
+button.v.Text = "OFF"
+button.v.TextColor3 = Color3.fromRGB(255,0,0)
+else
+cheats[button.Name] = true
+button.v.Text = "ON"
+button.v.TextColor3 = Color3.fromRGB(0,255,0)
+end
+end
+end)
+end
+end
+
+--initial player addition
+for _,v in pairs(game:GetService("Players"):GetChildren()) do
+if not (v.Name == localplayer.Name) then
+if not (espf:FindFirstChild(v.Name)) then
+addEsp(v)
+end
+end
+end
+
+--open/close gui
+game:GetService("UserInputService").InputBegan:connect(function(input, gameProcessed)
+if input.KeyCode == Enum.KeyCode.KeypadOne then
+if not gameProcessed then
+age1.Enabled = not age1.Enabled
+end
+end
+end)
+
+--auto-update
+while wait(10) do
+for _,v in pairs(game:GetService("Players"):GetChildren()) do
+if not (v.Name == localplayer.Name) then
+if not (espf:FindFirstChild(v.Name)) then
+addEsp(v)
+end
+end
+end
+end
+end
+end)
+
+
+local e = ESP:Button("Helios ESP", function()
+--Settings--
+local ESP = {
+    Enabled = true,
+    Boxes = true,
+    BoxShift = CFrame.new(0,-1.5,0),
+	BoxSize = Vector3.new(4,6,0),
+    Color = Color3.fromRGB(255, 170, 0),
+    FaceCamera = false,
+    Names = true,
+    TeamColor = true,
+    Thickness = 2,
+    AttachShift = 1,
+    TeamMates = true,
+    Players = true,
+    
+    Objects = setmetatable({}, {__mode="kv"}),
+    Overrides = {}
+}
+
+--Declarations--
+local cam = workspace.CurrentCamera
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local mouse = plr:GetMouse()
+
+local V3new = Vector3.new
+local WorldToViewportPoint = cam.WorldToViewportPoint
+
+--Functions--
+local function Draw(obj, props)
+	local new = Drawing.new(obj)
+	
+	props = props or {}
+	for i,v in pairs(props) do
+		new[i] = v
+	end
+	return new
+end
+
+function ESP:GetTeam(p)
+	local ov = self.Overrides.GetTeam
+	if ov then
+		return ov(p)
+	end
+	
+	return p and p.Team
+end
+
+function ESP:IsTeamMate(p)
+    local ov = self.Overrides.IsTeamMate
+	if ov then
+		return ov(p)
+    end
+    
+    return self:GetTeam(p) == self:GetTeam(plr)
+end
+
+function ESP:GetColor(obj)
+	local ov = self.Overrides.GetColor
+	if ov then
+		return ov(obj)
+    end
+    local p = self:GetPlrFromChar(obj)
+	return p and self.TeamColor and p.Team and p.Team.TeamColor.Color or self.Color
+end
+
+function ESP:GetPlrFromChar(char)
+	local ov = self.Overrides.GetPlrFromChar
+	if ov then
+		return ov(char)
+	end
+	
+	return plrs:GetPlayerFromCharacter(char)
+end
+
+function ESP:Toggle(bool)
+    self.Enabled = bool
+    if not bool then
+        for i,v in pairs(self.Objects) do
+            if v.Type == "Box" then --fov circle etc
+                if v.Temporary then
+                    v:Remove()
+                else
+                    for i,v in pairs(v.Components) do
+                        v.Visible = false
+                    end
+                end
+            end
+        end
+    end
+end
+
+function ESP:GetBox(obj)
+    return self.Objects[obj]
+end
+
+function ESP:AddObjectListener(parent, options)
+    local function NewListener(c)
+        if type(options.Type) == "string" and c:IsA(options.Type) or options.Type == nil then
+            if type(options.Name) == "string" and c.Name == options.Name or options.Name == nil then
+                if not options.Validator or options.Validator(c) then
+                    local box = ESP:Add(c, {
+                        PrimaryPart = type(options.PrimaryPart) == "string" and c:WaitForChild(options.PrimaryPart) or type(options.PrimaryPart) == "function" and options.PrimaryPart(c),
+                        Color = type(options.Color) == "function" and options.Color(c) or options.Color,
+                        ColorDynamic = options.ColorDynamic,
+                        Name = type(options.CustomName) == "function" and options.CustomName(c) or options.CustomName,
+                        IsEnabled = options.IsEnabled,
+                        RenderInNil = options.RenderInNil
+                    })
+                    --TODO: add a better way of passing options
+                    if options.OnAdded then
+                        coroutine.wrap(options.OnAdded)(box)
+                    end
+                end
+            end
+        end
+    end
+
+    if options.Recursive then
+        parent.DescendantAdded:Connect(NewListener)
+        for i,v in pairs(parent:GetDescendants()) do
+            coroutine.wrap(NewListener)(v)
+        end
+    else
+        parent.ChildAdded:Connect(NewListener)
+        for i,v in pairs(parent:GetChildren()) do
+            coroutine.wrap(NewListener)(v)
+        end
+    end
+end
+
+local boxBase = {}
+boxBase.__index = boxBase
+
+function boxBase:Remove()
+    ESP.Objects[self.Object] = nil
+    for i,v in pairs(self.Components) do
+        v.Visible = false
+        v:Remove()
+        self.Components[i] = nil
+    end
+end
+
+function boxBase:Update()
+    if not self.PrimaryPart then
+        --warn("not supposed to print", self.Object)
+        return self:Remove()
+    end
+
+    local color
+    if ESP.Highlighted == self.Object then
+       color = ESP.HighlightColor
+    else
+        color = self.Color or self.ColorDynamic and self:ColorDynamic() or ESP:GetColor(self.Object) or ESP.Color
+    end
+
+    local allow = true
+    if ESP.Overrides.UpdateAllow and not ESP.Overrides.UpdateAllow(self) then
+        allow = false
+    end
+    if self.Player and not ESP.TeamMates and ESP:IsTeamMate(self.Player) then
+        allow = false
+    end
+    if self.Player and not ESP.Players then
+        allow = false
+    end
+    if self.IsEnabled and (type(self.IsEnabled) == "string" and not ESP[self.IsEnabled] or type(self.IsEnabled) == "function" and not self:IsEnabled()) then
+        allow = false
+    end
+    if not workspace:IsAncestorOf(self.PrimaryPart) and not self.RenderInNil then
+        allow = false
+    end
+
+    if not allow then
+        for i,v in pairs(self.Components) do
+            v.Visible = false
+        end
+        return
+    end
+
+    if ESP.Highlighted == self.Object then
+        color = ESP.HighlightColor
+    end
+
+    --calculations--
+    local cf = self.PrimaryPart.CFrame
+    if ESP.FaceCamera then
+        cf = CFrame.new(cf.p, cam.CFrame.p)
+    end
+    local size = self.Size
+    local locs = {
+        TopLeft = cf * ESP.BoxShift * CFrame.new(size.X/2,size.Y/2,0),
+        TopRight = cf * ESP.BoxShift * CFrame.new(-size.X/2,size.Y/2,0),
+        BottomLeft = cf * ESP.BoxShift * CFrame.new(size.X/2,-size.Y/2,0),
+        BottomRight = cf * ESP.BoxShift * CFrame.new(-size.X/2,-size.Y/2,0),
+        TagPos = cf * ESP.BoxShift * CFrame.new(0,size.Y/2,0),
+        Torso = cf * ESP.BoxShift
+    }
+
+    if ESP.Boxes then
+        local TopLeft, Vis1 = WorldToViewportPoint(cam, locs.TopLeft.p)
+        local TopRight, Vis2 = WorldToViewportPoint(cam, locs.TopRight.p)
+        local BottomLeft, Vis3 = WorldToViewportPoint(cam, locs.BottomLeft.p)
+        local BottomRight, Vis4 = WorldToViewportPoint(cam, locs.BottomRight.p)
+
+        if self.Components.Quad then
+            if Vis1 or Vis2 or Vis3 or Vis4 then
+                self.Components.Quad.Visible = true
+                self.Components.Quad.PointA = Vector2.new(TopRight.X, TopRight.Y)
+                self.Components.Quad.PointB = Vector2.new(TopLeft.X, TopLeft.Y)
+                self.Components.Quad.PointC = Vector2.new(BottomLeft.X, BottomLeft.Y)
+                self.Components.Quad.PointD = Vector2.new(BottomRight.X, BottomRight.Y)
+                self.Components.Quad.Color = color
+            else
+                self.Components.Quad.Visible = false
+            end
+        end
+    else
+        self.Components.Quad.Visible = false
+    end
+
+    if ESP.Names then
+        local TagPos, Vis5 = WorldToViewportPoint(cam, locs.TagPos.p)
+        
+        if Vis5 then
+            self.Components.Name.Visible = true
+            self.Components.Name.Position = Vector2.new(TagPos.X, TagPos.Y)
+            self.Components.Name.Text = self.Name
+            self.Components.Name.Color = color
+            
+            self.Components.Distance.Visible = true
+            self.Components.Distance.Position = Vector2.new(TagPos.X, TagPos.Y + 14)
+            self.Components.Distance.Text = math.floor((cam.CFrame.p - cf.p).magnitude) .."m away"
+            self.Components.Distance.Color = color
+        else
+            self.Components.Name.Visible = false
+            self.Components.Distance.Visible = false
+        end
+    else
+        self.Components.Name.Visible = false
+        self.Components.Distance.Visible = false
+    end
+    
+    if ESP.Tracers then
+        local TorsoPos, Vis6 = WorldToViewportPoint(cam, locs.Torso.p)
+
+        if Vis6 then
+            self.Components.Tracer.Visible = true
+            self.Components.Tracer.From = Vector2.new(TorsoPos.X, TorsoPos.Y)
+            self.Components.Tracer.To = Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/ESP.AttachShift)
+            self.Components.Tracer.Color = color
+        else
+            self.Components.Tracer.Visible = false
+        end
+    else
+        self.Components.Tracer.Visible = false
+    end
+end
+
+function ESP:Add(obj, options)
+    if not obj.Parent and not options.RenderInNil then
+        return warn(obj, "has no parent")
+    end
+
+    local box = setmetatable({
+        Name = options.Name or obj.Name,
+        Type = "Box",
+        Color = options.Color --[[or self:GetColor(obj)]],
+        Size = options.Size or self.BoxSize,
+        Object = obj,
+        Player = options.Player or plrs:GetPlayerFromCharacter(obj),
+        PrimaryPart = options.PrimaryPart or obj.ClassName == "Model" and (obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")) or obj:IsA("BasePart") and obj,
+        Components = {},
+        IsEnabled = options.IsEnabled,
+        Temporary = options.Temporary,
+        ColorDynamic = options.ColorDynamic,
+        RenderInNil = options.RenderInNil
+    }, boxBase)
+
+    if self:GetBox(obj) then
+        self:GetBox(obj):Remove()
+    end
+
+    box.Components["Quad"] = Draw("Quad", {
+        Thickness = self.Thickness,
+        Color = color,
+        Transparency = 1,
+        Filled = false,
+        Visible = self.Enabled and self.Boxes
+    })
+    box.Components["Name"] = Draw("Text", {
+		Text = box.Name,
+		Color = box.Color,
+		Center = true,
+		Outline = true,
+        Size = 19,
+        Visible = self.Enabled and self.Names
+	})
+	box.Components["Distance"] = Draw("Text", {
+		Color = box.Color,
+		Center = true,
+		Outline = true,
+        Size = 19,
+        Visible = self.Enabled and self.Names
+	})
+	
+	box.Components["Tracer"] = Draw("Line", {
+		Thickness = ESP.Thickness,
+		Color = box.Color,
+        Transparency = 1,
+        Visible = self.Enabled and self.Tracers
+    })
+    self.Objects[obj] = box
+    
+    obj.AncestryChanged:Connect(function(_, parent)
+        if parent == nil and ESP.AutoRemove ~= false then
+            box:Remove()
+        end
+    end)
+    obj:GetPropertyChangedSignal("Parent"):Connect(function()
+        if obj.Parent == nil and ESP.AutoRemove ~= false then
+            box:Remove()
+        end
+    end)
+
+    local hum = obj:FindFirstChildOfClass("Humanoid")
+	if hum then
+        hum.Died:Connect(function()
+            if ESP.AutoRemove ~= false then
+                box:Remove()
+            end
+		end)
+    end
+
+    return box
+end
+
+local function CharAdded(char)
+    local p = plrs:GetPlayerFromCharacter(char)
+    if not char:FindFirstChild("HumanoidRootPart") then
+        local ev
+        ev = char.ChildAdded:Connect(function(c)
+            if c.Name == "HumanoidRootPart" then
+                ev:Disconnect()
+                ESP:Add(char, {
+                    Name = p.Name,
+                    Player = p,
+                    PrimaryPart = c
+                })
+            end
+        end)
+    else
+        ESP:Add(char, {
+            Name = p.Name,
+            Player = p,
+            PrimaryPart = char.HumanoidRootPart
+        })
+    end
+end
+local function PlayerAdded(p)
+    p.CharacterAdded:Connect(CharAdded)
+    if p.Character then
+        coroutine.wrap(CharAdded)(p.Character)
+    end
+end
+plrs.PlayerAdded:Connect(PlayerAdded)
+for i,v in pairs(plrs:GetPlayers()) do
+    if v ~= plr then
+        PlayerAdded(v)
+    end
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    cam = workspace.CurrentCamera
+    for i,v in (ESP.Enabled and pairs or ipairs)(ESP.Objects) do
+        if v.Update then
+            local s,e = pcall(v.Update, v)
+            if not s then warn("[EU]", e, v.Object:GetFullName()) end
+        end
+    end
+end)
+
+return ESP
+end)
+
+
+
+local e = ESP:Button("Basic Esp", function()
+local lplr = game.Players.LocalPlayer
+local camera = game:GetService("Workspace").CurrentCamera
+local CurrentCamera = workspace.CurrentCamera
+local worldToViewportPoint = CurrentCamera.worldToViewportPoint
+
+local HeadOff = Vector3.new(0, 0.5, 0)
+local LegOff = Vector3.new(0,3,0)
+
+for i,v in pairs(game.Players:GetChildren()) do
+    local BoxOutline = Drawing.new("Square")
+    BoxOutline.Visible = false
+    BoxOutline.Color = Color3.new(0,0,0)
+    BoxOutline.Thickness = 1
+    BoxOutline.Transparency = 1
+    BoxOutline.Filled = false
+
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.new(1,1,1)
+    Box.Thickness = 1
+    Box.Transparency = 1
+    Box.Filled = false
+
+    local HealthBarOutline = Drawing.new("Square")
+    HealthBarOutline.Thickness = 1
+    HealthBarOutline.Filled = false
+    HealthBarOutline.Color = Color3.new(0,0,0)
+    HealthBarOutline.Transparency = 1
+    HealthBarOutline.Visible = false
+
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Thickness = 1
+    HealthBar.Filled = false
+    HealthBar.Transparency = 1
+    HealthBar.Visible = false
+
+    function boxesp()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+                local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+
+                local RootPart = v.Character.HumanoidRootPart
+                local Head = v.Character.Head
+                local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
+                local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + HeadOff)
+                local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - LegOff)
+
+                if onScreen then
+                    BoxOutline.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y - BoxOutline.Size.Y / 2)
+                    BoxOutline.Visible = true
+
+                    Box.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+                    Box.Visible = true
+
+                    HealthBarOutline.Size = Vector2.new(2, HeadPosition.Y - LegPosition.Y)
+                    HealthBarOutline.Position = BoxOutline.Position - Vector2.new(6,0)
+                    HealthBarOutline.Visible = true
+
+                    HealthBar.Size = Vector2.new(2, (HeadPosition.Y - LegPosition.Y) / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / math.clamp(game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value, 0, game:GetService("Players")[v.Character.Name].NRPBS:WaitForChild("MaxHealth").Value)))
+                    HealthBar.Position = Vector2.new(Box.Position.X - 6, Box.Position.Y + (1 / HealthBar.Size.Y))
+                    HealthBar.Color = Color3.fromRGB(255 - 255 / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value), 255 / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value), 0)
+                    HealthBar.Visible = true
+
+                    if v.TeamColor == lplr.TeamColor then
+                        --- Our Team
+                        BoxOutline.Visible = false
+                        Box.Visible = false
+                        HealthBarOutline.Visible = false
+                        HealthBar.Visible = false
+                    else
+                        ---Enemy Team
+                        BoxOutline.Visible = true
+                        Box.Visible = true
+                        HealthBarOutline.Visible = true
+                        HealthBar.Visible = true
+                    end
+
+                else
+                    BoxOutline.Visible = false
+                    Box.Visible = false
+                    HealthBarOutline.Visible = false
+                    HealthBar.Visible = false
+                end
+            else
+                BoxOutline.Visible = false
+                Box.Visible = false
+                HealthBarOutline.Visible = false
+                HealthBar.Visible = false
+            end
+        end)
+    end
+    coroutine.wrap(boxesp)()
+end
+
+game.Players.PlayerAdded:Connect(function(v)
+    local BoxOutline = Drawing.new("Square")
+    BoxOutline.Visible = false
+    BoxOutline.Color = Color3.new(0,0,0)
+    BoxOutline.Thickness = 3
+    BoxOutline.Transparency = 1
+    BoxOutline.Filled = false
+
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.new(1,1,1)
+    Box.Thickness = 1
+    Box.Transparency = 1
+    Box.Filled = false
+
+    local HealthBarOutline = Drawing.new("Square")
+    HealthBarOutline.Thickness = 3
+    HealthBarOutline.Filled = false
+    HealthBarOutline.Color = Color3.new(0,0,0)
+    HealthBarOutline.Transparency = 1
+    HealthBarOutline.Visible = false
+
+    local HealthBar = Drawing.new("Square")
+    HealthBar.Thickness = 1
+    HealthBar.Filled = false
+    HealthBar.Transparency = 1
+    HealthBar.Visible = false
+
+    function boxesp()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+                local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+
+                local RootPart = v.Character.HumanoidRootPart
+                local Head = v.Character.Head
+                local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
+                local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + HeadOff)
+                local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - LegOff)
+
+                if onScreen then
+                    BoxOutline.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y - BoxOutline.Size.Y / 2)
+                    BoxOutline.Visible = true
+
+                    Box.Size = Vector2.new(1000 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+                    Box.Visible = true
+
+                    HealthBarOutline.Size = Vector2.new(2, HeadPosition.Y - LegPosition.Y)
+                    HealthBarOutline.Position = BoxOutline.Position - Vector2.new(6,0)
+                    HealthBarOutline.Visible = true
+
+                    HealthBar.Size = Vector2.new(2, (HeadPosition.Y - LegPosition.Y) / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / math.clamp(game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value, 0, game:GetService("Players")[v.Character.Name].NRPBS:WaitForChild("MaxHealth").Value)))
+                    HealthBar.Position = Vector2.new(Box.Position.X - 6, Box.Position.Y + (1/HealthBar.Size.Y))
+		    HealthBar.Color = Color3.fromRGB(255 - 255 / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value), 255 / (game:GetService("Players")[v.Character.Name].NRPBS["MaxHealth"].Value / game:GetService("Players")[v.Character.Name].NRPBS["Health"].Value), 0)                    
+		    HealthBar.Visible = true
+
+                    if v.TeamColor == lplr.TeamColor then
+                        --- Our Team
+                        BoxOutline.Visible = false
+                        Box.Visible = false
+                        HealthBarOutline.Visible = false
+                        HealthBar.Visible = false
+                    else
+                        ---Enemy Team
+                        BoxOutline.Visible = true
+                        Box.Visible = true
+                        HealthBarOutline.Visible = true
+                        HealthBar.Visible = true
+                    end
+
+                else
+                    BoxOutline.Visible = false
+                    Box.Visible = false
+                    HealthBarOutline.Visible = false
+                    HealthBar.Visible = false
+                end
+            else
+                BoxOutline.Visible = false
+                Box.Visible = false
+                HealthBarOutline.Visible = false
+                HealthBar.Visible = false
+            end
+        end)
+    end
+    coroutine.wrap(boxesp)()
+end)
+end)
+
+
+local e = ESP:Button("Box ESP 1", function()
+-----box esp 2
+
+
+function genBilUI()
+-- Farewell Infortality.
+-- Version: 2.82
+-- Instances:
+local FESPr = Instance.new("BillboardGui")
+local Frame = Instance.new("Frame")
+local nme = Instance.new("TextLabel")
+local HP = Instance.new("TextLabel")
+local Type = Instance.new("TextLabel")
+--Properties:
+FESPr.Name = "FESPr"
+FESPr.Parent = game.Lighting
+FESPr.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+FESPr.AlwaysOnTop = true
+FESPr.LightInfluence = -1
+FESPr.Size = UDim2.new(5, 0, 8, 0)
+FESPr.StudsOffset = Vector3.new(0, 0, 0)
+
+Frame.Parent = FESPr
+Frame.BackgroundColor3 = Color3.new(1, 1, 1)
+Frame.BackgroundTransparency = 0.8
+Frame.BorderColor3 = Color3.new(0, 0, 0)
+Frame.BorderSizePixel = 2
+Frame.Position = UDim2.new(0.0250000004, 0, 0.0250000004, 0)
+Frame.Size = UDim2.new(0.899999976, 0, 0.899999976, 0)
+
+nme.Name = "nme"
+nme.Parent = FESPr
+nme.BackgroundColor3 = Color3.new(1, 1, 1)
+nme.BackgroundTransparency = 1
+nme.Size = UDim2.new(1, 0, 0.100000001, 0)
+nme.Font = Enum.Font.Arcade
+nme.Text = "USERNAME"
+nme.TextColor3 = Color3.new(0, 0, 0)
+nme.TextScaled = true
+nme.TextSize = 14
+nme.TextStrokeColor3 = Color3.new(1, 1, 1)
+nme.TextStrokeTransparency = 0
+nme.TextWrapped = true
+nme.TextTransparency = 0.5
+
+HP.Name = "HP"
+HP.Parent = FESPr
+HP.BackgroundColor3 = Color3.new(1, 1, 1)
+HP.BackgroundTransparency = 1
+HP.Position = UDim2.new(0, 0, 0.150000006, 0)
+HP.Size = UDim2.new(1, 0, 0.100000001, 0)
+HP.Font = Enum.Font.Arcade
+HP.Text = "100/100"
+HP.TextColor3 = Color3.new(1, 0, 0)
+HP.TextScaled = true
+HP.TextSize = 14
+HP.TextStrokeColor3 = Color3.new(0.4, 0, 0)
+HP.TextStrokeTransparency = 0
+HP.TextWrapped = true
+HP.TextTransparency = 0.5
+
+Type.Name = "Type"
+Type.Parent = FESPr
+Type.BackgroundColor3 = Color3.new(1, 1, 1)
+Type.BackgroundTransparency = 1
+Type.Position = UDim2.new(0, 0, 0.400000006, 0)
+Type.Size = UDim2.new(1, 0, 0.100000001, 0)
+Type.Font = Enum.Font.Arcade
+Type.Text = "TYPE"
+Type.TextColor3 = Color3.new(1, 1, 0)
+Type.TextScaled = true
+Type.TextSize = 14
+Type.TextStrokeColor3 = Color3.new(0.439216, 0.439216, 0)
+Type.TextStrokeTransparency = 0
+Type.TextWrapped = true
+Type.TextTransparency = 0.5
+
+-- Scripts:
+end
+
+function genPlrGUI()
+	
+	-- Farewell Infortality.
+-- Version: 2.82
+-- Instances:
+local FESPrPLR = Instance.new("ScreenGui")
+local Base = Instance.new("ScrollingFrame")
+local FrogHarass = Instance.new("Frame")
+local ImageLabel = Instance.new("ImageLabel")
+local Target = Instance.new("TextLabel")
+local TextBox = Instance.new("TextBox")
+local Act = Instance.new("TextButton")
+local TextLabel = Instance.new("TextLabel")
+local TextLabel_2 = Instance.new("TextLabel")
+local TextLabel_3 = Instance.new("TextLabel")
+local NPCESP = Instance.new("Frame")
+local TextLabel_4 = Instance.new("TextLabel")
+local Act_2 = Instance.new("TextButton")
+local State = Instance.new("TextLabel")
+local TextLabel_5 = Instance.new("TextLabel")
+local FrogESP = Instance.new("Frame")
+local Act_3 = Instance.new("TextButton")
+local State_2 = Instance.new("TextLabel")
+local TextLabel_6 = Instance.new("TextLabel")
+local TextLabel_7 = Instance.new("TextLabel")
+local TextLabel_8 = Instance.new("TextLabel")
+local TextLabel_9 = Instance.new("TextLabel")
+local Title = Instance.new("TextLabel")
+--Properties:
+FESPrPLR.Name = "FESPrPLR"
+FESPrPLR.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+FESPrPLR.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Base.Name = "Base"
+Base.Parent = FESPrPLR
+Base.BackgroundColor3 = Color3.new(1, 1, 1)
+Base.BorderSizePixel = 2
+Base.Position = UDim2.new(0.0663441569, 0, 0.648124158, 0)
+Base.Size = UDim2.new(0, 400, 0, 181)
+Base.ScrollBarThickness = 15
+Base.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Left
+
+FrogHarass.Name = "Frog Harass"
+FrogHarass.Parent = Base
+FrogHarass.BackgroundColor3 = Color3.new(1, 1, 1)
+FrogHarass.Position = UDim2.new(0.582499981, 0, 0.0931435898, 0)
+FrogHarass.Size = UDim2.new(0, 167, 0, 100)
+
+ImageLabel.Parent = FrogHarass
+ImageLabel.BackgroundColor3 = Color3.new(1, 1, 1)
+ImageLabel.Position = UDim2.new(0.587442935, 0, 0.0129366145, 0)
+ImageLabel.Size = UDim2.new(0, 62, 0, 56)
+ImageLabel.Image = "rbxassetid://924320031"
+
+Target.Name = "Target"
+Target.Parent = FrogHarass
+Target.BackgroundColor3 = Color3.new(1, 1, 1)
+Target.BorderSizePixel = 0
+Target.Position = UDim2.new(0.538078785, 0, 0.580000043, 0)
+Target.Size = UDim2.new(0, 77, 0, 17)
+Target.Font = Enum.Font.SourceSans
+Target.Text = "Targeting N/A"
+Target.TextColor3 = Color3.new(0, 0, 0)
+Target.TextScaled = true
+Target.TextSize = 14
+Target.TextWrapped = true
+
+TextBox.Parent = FrogHarass
+TextBox.BackgroundColor3 = Color3.new(0.901961, 0.901961, 0.901961)
+TextBox.Position = UDim2.new(0.0359281451, 0, 0.420000017, 0)
+TextBox.Size = UDim2.new(0, 83, 0, 16)
+TextBox.Font = Enum.Font.SourceSans
+TextBox.PlaceholderColor3 = Color3.new(0.337255, 0.337255, 0.337255)
+TextBox.PlaceholderText = "Username"
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.new(0, 0, 0)
+TextBox.TextSize = 14
+
+Act.Name = "Act"
+Act.Parent = FrogHarass
+Act.BackgroundColor3 = Color3.new(1, 1, 1)
+Act.Position = UDim2.new(0.0359281376, 0, 0.649999976, 0)
+Act.Size = UDim2.new(0, 55, 0, 19)
+Act.Font = Enum.Font.SourceSans
+Act.Text = "Target"
+Act.TextColor3 = Color3.new(0, 0, 0)
+Act.TextSize = 14
+
+TextLabel.Parent = FrogHarass
+TextLabel.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel.BorderSizePixel = 0
+TextLabel.Position = UDim2.new(0.0350847989, 0, 0, 0)
+TextLabel.Size = UDim2.new(0, 84, 0, 35)
+TextLabel.Font = Enum.Font.Arcade
+TextLabel.Text = "Frog Harass"
+TextLabel.TextColor3 = Color3.new(0, 0.666667, 0)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14
+TextLabel.TextStrokeColor3 = Color3.new(0, 0.333333, 0)
+TextLabel.TextStrokeTransparency = 0
+TextLabel.TextWrapped = true
+
+TextLabel_2.Parent = FrogHarass
+TextLabel_2.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_2.BorderSizePixel = 0
+TextLabel_2.Position = UDim2.new(0.365269452, 0, 0.839999974, 0)
+TextLabel_2.Size = UDim2.new(0, 106, 0, 16)
+TextLabel_2.Font = Enum.Font.SourceSans
+TextLabel_2.Text = "Targets a certain player"
+TextLabel_2.TextColor3 = Color3.new(0.6, 0.6, 0)
+TextLabel_2.TextScaled = true
+TextLabel_2.TextSize = 14
+TextLabel_2.TextWrapped = true
+
+TextLabel_3.Parent = Base
+TextLabel_3.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_3.BackgroundTransparency = 1
+TextLabel_3.Position = UDim2.new(0.0825000033, 0, 0, 0)
+TextLabel_3.Size = UDim2.new(0, 191, 0, 35)
+TextLabel_3.Font = Enum.Font.SourceSans
+TextLabel_3.Text = "This is the control panel for any future additons I add. Open and close by pressing F4"
+TextLabel_3.TextColor3 = Color3.new(0, 0, 0)
+TextLabel_3.TextScaled = true
+TextLabel_3.TextSize = 14
+TextLabel_3.TextWrapped = true
+
+NPCESP.Name = "NPC ESP"
+NPCESP.Parent = Base
+NPCESP.BackgroundColor3 = Color3.new(1, 1, 1)
+NPCESP.Position = UDim2.new(0.582499981, 0, 0.162354454, 0)
+NPCESP.Size = UDim2.new(0, 167, 0, 100)
+
+TextLabel_4.Parent = NPCESP
+TextLabel_4.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_4.BorderSizePixel = 0
+TextLabel_4.Position = UDim2.new(0.0290967822, 0, 0, 0)
+TextLabel_4.Size = UDim2.new(0, 84, 0, 35)
+TextLabel_4.Font = Enum.Font.Arcade
+TextLabel_4.Text = "NPC ESP"
+TextLabel_4.TextColor3 = Color3.new(0, 0.666667, 0)
+TextLabel_4.TextScaled = true
+TextLabel_4.TextSize = 14
+TextLabel_4.TextStrokeColor3 = Color3.new(0, 0.333333, 0)
+TextLabel_4.TextStrokeTransparency = 0
+TextLabel_4.TextWrapped = true
+
+Act_2.Name = "Act"
+Act_2.Parent = NPCESP
+Act_2.BackgroundColor3 = Color3.new(1, 1, 1)
+Act_2.Position = UDim2.new(0.119760498, 0, 0.349999994, 0)
+Act_2.Size = UDim2.new(0, 55, 0, 19)
+Act_2.Font = Enum.Font.SourceSans
+Act_2.Text = "Toggle"
+Act_2.TextColor3 = Color3.new(0, 0, 0)
+Act_2.TextSize = 14
+
+State.Name = "State"
+State.Parent = NPCESP
+State.BackgroundColor3 = Color3.new(1, 1, 1)
+State.BorderSizePixel = 0
+State.Position = UDim2.new(0.142869219, 0, 0.600000024, 0)
+State.Size = UDim2.new(0, 46, 0, 17)
+State.Font = Enum.Font.SourceSans
+State.Text = "OFF"
+State.TextColor3 = Color3.new(0, 0, 0)
+State.TextScaled = true
+State.TextSize = 14
+State.TextWrapped = true
+
+TextLabel_5.Parent = NPCESP
+TextLabel_5.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_5.BorderSizePixel = 0
+TextLabel_5.Position = UDim2.new(0.538078785, 0, 0, 0)
+TextLabel_5.Size = UDim2.new(0, 76, 0, 35)
+TextLabel_5.Font = Enum.Font.SourceSans
+TextLabel_5.Text = "Detects NPCs in-game"
+TextLabel_5.TextColor3 = Color3.new(0.6, 0.6, 0)
+TextLabel_5.TextScaled = true
+TextLabel_5.TextSize = 14
+TextLabel_5.TextWrapped = true
+
+FrogESP.Name = "Frog ESP"
+FrogESP.Parent = Base
+FrogESP.BackgroundColor3 = Color3.new(1, 1, 1)
+FrogESP.Position = UDim2.new(0.579999983, 0, 0.0226390678, 0)
+FrogESP.Size = UDim2.new(0, 167, 0, 100)
+
+Act_3.Name = "Act"
+Act_3.Parent = FrogESP
+Act_3.BackgroundColor3 = Color3.new(1, 1, 1)
+Act_3.Position = UDim2.new(0.0898203701, 0, 0.370000005, 0)
+Act_3.Size = UDim2.new(0, 55, 0, 19)
+Act_3.Font = Enum.Font.SourceSans
+Act_3.Text = "Toggle"
+Act_3.TextColor3 = Color3.new(0, 0, 0)
+Act_3.TextSize = 14
+
+State_2.Name = "State"
+State_2.Parent = FrogESP
+State_2.BackgroundColor3 = Color3.new(1, 1, 1)
+State_2.BorderSizePixel = 0
+State_2.Position = UDim2.new(0.112929091, 0, 0.620000005, 0)
+State_2.Size = UDim2.new(0, 46, 0, 17)
+State_2.Font = Enum.Font.SourceSans
+State_2.Text = "ON"
+State_2.TextColor3 = Color3.new(0, 0, 0)
+State_2.TextScaled = true
+State_2.TextSize = 14
+State_2.TextWrapped = true
+
+TextLabel_6.Parent = FrogESP
+TextLabel_6.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_6.BorderSizePixel = 0
+TextLabel_6.Position = UDim2.new(0.00514467061, 0, 0, 0)
+TextLabel_6.Size = UDim2.new(0, 84, 0, 35)
+TextLabel_6.Font = Enum.Font.Arcade
+TextLabel_6.Text = "Frog ESP"
+TextLabel_6.TextColor3 = Color3.new(0, 0.666667, 0)
+TextLabel_6.TextScaled = true
+TextLabel_6.TextSize = 14
+TextLabel_6.TextStrokeColor3 = Color3.new(0, 0.333333, 0)
+TextLabel_6.TextStrokeTransparency = 0
+TextLabel_6.TextWrapped = true
+
+TextLabel_7.Parent = FrogESP
+TextLabel_7.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_7.BorderSizePixel = 0
+TextLabel_7.Position = UDim2.new(0.574006975, 0, 0, 0)
+TextLabel_7.Size = UDim2.new(0, 69, 0, 46)
+TextLabel_7.Font = Enum.Font.SourceSans
+TextLabel_7.Text = "Base module that detects players"
+TextLabel_7.TextColor3 = Color3.new(0.6, 0.6, 0)
+TextLabel_7.TextScaled = true
+TextLabel_7.TextSize = 14
+TextLabel_7.TextWrapped = true
+
+TextLabel_8.Parent = Base
+TextLabel_8.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_8.BackgroundTransparency = 1
+TextLabel_8.Position = UDim2.new(0.595000029, 0, 0, 0)
+TextLabel_8.Size = UDim2.new(0, 154, 0, 35)
+TextLabel_8.Font = Enum.Font.SourceSans
+TextLabel_8.Text = "Modules"
+TextLabel_8.TextColor3 = Color3.new(0, 0, 0)
+TextLabel_8.TextScaled = true
+TextLabel_8.TextSize = 14
+TextLabel_8.TextWrapped = true
+
+TextLabel_9.Parent = Base
+TextLabel_9.BackgroundColor3 = Color3.new(1, 1, 1)
+TextLabel_9.BackgroundTransparency = 1
+TextLabel_9.Position = UDim2.new(0.127500013, 0, 0.0187580846, 0)
+TextLabel_9.Size = UDim2.new(0, 154, 0, 35)
+TextLabel_9.Font = Enum.Font.SourceSans
+TextLabel_9.Text = "Options"
+TextLabel_9.TextColor3 = Color3.new(0, 0, 0)
+TextLabel_9.TextScaled = true
+TextLabel_9.TextSize = 14
+TextLabel_9.TextWrapped = true
+
+Title.Name = "Title"
+Title.Parent = FESPrPLR
+Title.BackgroundColor3 = Color3.new(1, 1, 1)
+Title.BackgroundTransparency = 0.80000001192093
+Title.BorderSizePixel = 0
+Title.Position = UDim2.new(0.135452658, 0, 0.615782678, 0)
+Title.Size = UDim2.new(0, 200, 0, 19)
+Title.Font = Enum.Font.Arcade
+Title.Text = "Frog ESP v3"
+Title.TextColor3 = Color3.new(0, 0.666667, 0)
+Title.TextScaled = true
+Title.TextSize = 14
+Title.TextStrokeColor3 = Color3.new(0, 0.333333, 0)
+Title.TextStrokeTransparency = 0
+Title.TextWrapped = true
+-- Scripts:
+function SCRIPT_CPEY88_FAKESCRIPT() -- Base.LocalScript 
+	local script = Instance.new('LocalScript')
+	script.Parent = Base
+	base = Base
+	
+	base.Visible = not base.Visible
+	base.Parent.Title.Visible = not base.Parent.Title.Visible
+	ESPname = "FESPr"
+	function newtEntry(n,v)
+			b = game.Lighting:FindFirstChild(ESPname.."config"):FindFirstChild(n)
+			if v == "t" then
+				b.Value = not b.Value 
+			else
+				b.Value = v
+			end
+	end
+	
+	local function readVt(n)
+			v = game.Lighting:FindFirstChild(ESPname.."config"):FindFirstChild(n).Value
+			if typeof(v) == "boolean" then
+				if v == false then
+					return "OFF"
+				else
+					return "ON"
+				end
+			else
+				return v
+			end
+			
+	end
+	
+	--[[
+		newEntry("BoolValue","FrogEyes",false)
+		newEntry("BoolValue","FrogESP",true)
+		newEntry("BoolValue","NPCesp",false)
+		newEntry("StringValue","FHtarget","")
+	]]--
+	
+	--functions
+	--[[
+	base["Frog Eyes"].Act.MouseButton1Click:connect(function()
+	  	newEntry("FrogEyes","t")
+		tmp = readV("FrogEyes")
+		base["Frog Eyes"].State.Text = tmp
+	end)
+	]]--
+	tmp = readVt("FrogESP")
+		base["Frog ESP"].State.Text = tmp
+	base["Frog ESP"].Act.MouseButton1Click:connect(function()
+	  	newtEntry("FrogESP","t")
+		tmp = readVt("FrogESP")
+		base["Frog ESP"].State.Text = tmp
+	end)
+	
+	tmp = readVt("FHtarget")
+		if game:GetService("Players"):FindFirstChild(tmp) ~= nil then
+			base["Frog Harass"].ImageLabel.Image = "http://www.roblox.com/thumbs/avatar.ashx?x=352&y=352&format=png&username="..tmp
+			base["Frog Harass"].Target.Text = "Targeting "..tmp
+		else
+			base["Frog Harass"].ImageLabel.Image = ""
+			base["Frog Harass"].Target.Text = "Player Not Found"
+		end
+	base["Frog Harass"].Act.MouseButton1Click:connect(function()
+	  	newtEntry("FHtarget",base["Frog Harass"].TextBox.Text)
+		tmp = readVt("FHtarget")
+		if game:GetService("Players"):FindFirstChild(tmp) ~= nil then
+			base["Frog Harass"].ImageLabel.Image = "http://www.roblox.com/thumbs/avatar.ashx?x=352&y=352&format=png&username="..tmp
+			base["Frog Harass"].Target.Text = "Targeting "..tmp
+		else
+			base["Frog Harass"].ImageLabel.Image = ""
+			base["Frog Harass"].Target.Text = "Player Not Found"
+		end
+	end)
+	
+	tmp = readVt("NPCesp")
+		base["NPC ESP"].State.Text = tmp
+	base["NPC ESP"].Act.MouseButton1Click:connect(function()
+	  	newtEntry("NPCesp","t")
+		tmp = readVt("NPCesp")
+		base["NPC ESP"].State.Text = tmp
+		pcnpc = false
+	end)
+	--button
+	
+
+end
+coroutine.resume(coroutine.create(SCRIPT_CPEY88_FAKESCRIPT))
+
+end
+
+--ACTUAL SCRIPT
+genBilUI()
+local UIS = game:GetService("UserInputService")
+	
+	UIS.InputBegan:connect(function(input)
+		if input.KeyCode == Enum.KeyCode.F4 then
+			tt = game:GetService("Players").LocalPlayer.PlayerGui[ESPname.."PLR"].Base
+			tt.Visible = not tt.Visible
+			tt.Parent.Title.Visible = not tt.Parent.Title.Visible
+		end
+	end)
+
+function Notify(title,text,duration,icon,func,BTN,BTN2)
+	
+		game.StarterGui:SetCore("SendNotification", {Title=title,Text=text,Icon=icon,Duration=duration,Callback=func,Button1=BTN,Button2=BTN2})
+	end
+	
+	Notify("FROG ESP v3","F4 to open UI",5,"rbxassetid://900690309")
+
+ESPname = "FESPr"
+
+
+
+	--modules
+	local FrogEyes
+	local FrogESP
+	local NPCesp
+	--settings
+	local FHtarget
+	--end
+
+pcnpc = true
+
+function newEntry(t,n,v)
+		b = Instance.new(t)
+		b.Name = n
+		b.Value = v 
+		b.Parent = game.Lighting:FindFirstChild(ESPname.."config")
+end
+
+--make config
+if game.Lighting:FindFirstChild(ESPname.."config") == nil then
+	con = Instance.new("Configuration")
+	con.Name = ESPname .. "config"
+	con.Parent = game.Lighting
+	
+	newEntry("BoolValue","FrogEyes",false)
+	newEntry("BoolValue","FrogESP",true)
+	newEntry("BoolValue","NPCesp",false)
+	newEntry("StringValue","FHtarget","")
+end
+
+
+con = game.Lighting:FindFirstChild(ESPname.."config")
+
+
+while true do
+	function NPC()
+			for index, child in pairs(game.Workspace:GetDescendants()) do
+			 	--print(index, child.Name .. " -[".. child.ClassName .."]")
+				--check if it exists in the workspace
+				if child.ClassName == "Humanoid" then
+					if game:GetService("Players"):FindFirstChild(child.Parent.name) == nil then
+						--check if there is not already an ESP on it
+						plr = child.Parent
+						if plr:FindFirstChild("Head"):FindFirstChild(ESPname) == nil then
+							if NPCesp then
+							
+							--if not then add one
+								tmp = ESP:Clone()
+								tmp.Parent = plr.Head
+							end
+						else
+							--if there is try to update it
+							--if off take it away
+							if plr:FindFirstChild("Head") ~= nil then
+								if NPCesp == false then
+									plr.Head:FindFirstChild(ESPname):Destroy()
+								else
+									--team [X], name [X], HP [X] 
+										e = plr.Head:FindFirstChild(ESPname)
+										e.Frame.BackgroundColor3 = Color3.new(0.9,0.8,0.2)
+										e.Frame.BorderColor3 = Color3.new(1,1,1)
+										e.HP.Text = math.floor(child.Health) .. "/" .. math.floor(child.MaxHealth)
+										e.nme.Text = tostring(child.Parent.Name)
+										e.Type.Text = "NPC"
+						
+								end
+							end
+						end
+					end
+				end
+				pcnpc = true
+			end
+	end
+
+	function plrE()
+		ESP = game.Lighting:FindFirstChild(ESPname)
+		dir = game:GetService("Players")
+		--player ESP
+		for i, child in pairs(dir:GetChildren()) do
+			--check if it exists in the workspace 
+			if child.Character and child.Name ~= game:GetService("Players").LocalPlayer.Name then
+				--check if there is not already an ESP on it
+				plr = child.Character
+				if plr ~= nil and plr:FindFirstChild(ESPname) == nil then
+					if FrogESP then
+					--if not then add one AVOID ADDING TO PLAYER
+						tmp = ESP:Clone()
+						tmp.Parent = plr
+					end
+				else
+					--if there is try to update it
+					--if off take it away
+					if FrogESP == false and plr ~= nil then
+						plr:FindFirstChild(ESPname):Destroy()
+					else
+						--team [X], name [X], HP [X] 
+						if plr ~= nil then
+							e = plr:FindFirstChild(ESPname)
+							e.Frame.BackgroundColor3 = game:GetService("Players")[plr.Name].TeamColor.Color
+							e.HP.Text = math.floor(plr.Humanoid.Health) .. "/" .. math.floor(plr.Humanoid.MaxHealth)
+							e.nme.Text = tostring(child.name)
+							e.Type.Text = "Player"
+							e.Type.TextColor3 = Color3.fromRGB(255, 255, 0)
+							e.Type.TextStrokeColor3 = Color3.fromRGB(112, 112, 0)
+							
+							if con.FHtarget.Value == child.name then
+								e.Frame.BorderColor3 = Color3.new(1,0,0)
+								e.Type.Text = "TARGET"
+								e.Type.TextColor3 = Color3.fromRGB(255, 76, 0)
+								e.Type.TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	if game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild(ESPname.."PLR") == nil then
+		genPlrGUI()
+	end
+	wait(0.1)
+	if NPCesp == true then
+		spawn(NPC)
+	elseif pcnpc == false then
+		spawn(NPC)
+	end
+	
+	spawn(plrE)
+	--update Vars
+	con = game.Lighting:FindFirstChild(ESPname.."config")
+	local function readV(n)
+		
+		return game.Lighting:FindFirstChild(ESPname.."config")[n].Value
+	end
+	
+	--modules
+	FrogEyes = readV("FrogEyes")
+	FrogESP = readV("FrogESP")
+	NPCesp = readV("NPCesp")
+	--settings
+	FHtarget = readV("FHtarget")
+
+	--end
+
+	
+	
+	
+	if game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild(ESPname.."PLR") == nil then
+		genPlrGUI()
+	end
+		
+end
+end)
+
+local e = ESP:Button("Box ESP 2", function()
+----box esp
+
+
+local Holder = Instance.new("Folder", game.CoreGui)
+Holder.Name = "ESP"
+
+local UpdateFuncs = {}
+
+local Box = Instance.new("BoxHandleAdornment")
+Box.Name = "nilBox"
+Box.Size = Vector3.new(4, 7, 4)
+Box.Color3 = Color3.new(100 / 255, 100 / 255, 100 / 255)
+Box.Transparency = 0.7
+Box.ZIndex = 0
+Box.AlwaysOnTop = true
+Box.Visible = true
+
+local NameTag = Instance.new("BillboardGui")
+NameTag.Name = "nilNameTag"
+NameTag.Enabled = false
+NameTag.Size = UDim2.new(0, 200, 0, 50)
+NameTag.AlwaysOnTop = true
+NameTag.StudsOffset = Vector3.new(0, 1.8, 0)
+local Tag = Instance.new("TextLabel", NameTag)
+Tag.Name = "Tag"
+Tag.BackgroundTransparency = 1
+Tag.Position = UDim2.new(0, -50, 0, 0)
+Tag.Size = UDim2.new(0, 300, 0, 20)
+Tag.TextSize = 20
+Tag.TextColor3 = Color3.new(100 / 255, 100 / 255, 100 / 255)
+Tag.TextStrokeColor3 = Color3.new(0 / 255, 0 / 255, 0 / 255)
+Tag.TextStrokeTransparency = 0.4
+Tag.Text = "nil"
+Tag.Font = Enum.Font.SourceSansBold
+Tag.TextScaled = false
+
+local LoadCharacter = function(v)
+	repeat wait() until v.Character ~= nil
+	v.Character:WaitForChild("Humanoid")
+	local vHolder = Holder:FindFirstChild(v.Name)
+	vHolder:ClearAllChildren()
+	local b = Box:Clone()
+	b.Name = v.Name .. "Box"
+	b.Adornee = v.Character
+	b.Parent = vHolder
+	local t = NameTag:Clone()
+	t.Name = v.Name .. "NameTag"
+	t.Enabled = true
+	t.Parent = vHolder
+	t.Adornee = v.Character:WaitForChild("Head", 5)
+	if not t.Adornee then
+		return UnloadCharacter(v)
+	end
+	t.Tag.Text = v.Name
+	b.Color3 = Color3.new(v.TeamColor.r, v.TeamColor.g, v.TeamColor.b)
+	t.Tag.TextColor3 = Color3.new(v.TeamColor.r, v.TeamColor.g, v.TeamColor.b)
+	local UpdateNameTag = function()
+		if not pcall(function()
+			--v.Character.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+			local maxh = math.floor(v.Character.Humanoid.MaxHealth)
+			local h = math.floor(v.Character.Humanoid.Health)
+			t.Tag.Text = v.Name .. "\n" .. ((maxh ~= 0 and tostring(math.floor((h / maxh) * 100))) or "0") .. "%  " .. tostring(h) .. "/" .. tostring(maxh)
+		end) then
+			UpdateFuncs[v] = nil
+		end
+	end
+	UpdateNameTag()
+	UpdateFuncs[v] = UpdateNameTag
+end
+
+local UnloadCharacter = function(v)
+	local vHolder = Holder:FindFirstChild(v.Name)
+	if vHolder and (vHolder:FindFirstChild(v.Name .. "Box") ~= nil or vHolder:FindFirstChild(v.Name .. "NameTag") ~= nil) then
+		vHolder:ClearAllChildren()
+	end
+end
+
+local LoadPlayer = function(v)
+	local vHolder = Instance.new("Folder", Holder)
+	vHolder.Name = v.Name
+	v.CharacterAdded:Connect(function()
+		pcall(LoadCharacter, v)
+	end)
+	v.CharacterRemoving:Connect(function()
+		pcall(UnloadCharacter, v)
+	end)
+	LoadCharacter(v)
+end
+
+local UnloadPlayer = function(v)
+	UnloadCharacter(v)
+	local vHolder = Holder:FindFirstChild(v.Name)
+	if vHolder then
+		vHolder:Destroy()
+	end
+end
+
+for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+	spawn(function() pcall(LoadPlayer, v) end)
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(v)
+	pcall(LoadPlayer, v)
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function(v)
+	pcall(UnloadPlayer, v)
+end)
+
+game.ItemChanged:Connect(function(i, v)
+	if i:IsA("Player") and v == "TeamColor" then
+		if Holder:FindFirstChild(i.Name) then
+			UnloadCharacter(i)
+			wait()
+			LoadCharacter(i)
+		end
+	elseif i:IsA("Humanoid") and i.Parent then
+		local p = game:GetService("Players"):GetPlayerFromCharacter(i.Parent)
+		if p and Holder:FindFirstChild(p.Name) then
+			UpdateFuncs[p]()
+		end
+	end
+end)
+
+game:GetService("Players").LocalPlayer.NameDisplayDistance = 0
+game:GetService("Players").LocalPlayer.HealthDisplayDistance = 0
+end)
+
+local e = ESP:Button("Unix ESP", function()
+spawn(loadstring(game:HttpGet("https://pastebin.com/raw/zKjj0TQD", true)))()
+
+end)
+
+local e = ESP:Button("Universal ESP", function()
+loadstring(game:HttpGet("https://pastebin.com/raw/uw2P2fbY", true))()
+----universal esp gui
+end)
+
+
+
+local e = ESP:Button("Unnamed Esp", function()
+loadstring(game:HttpGet("https://pastebin.com/raw/KzQfY4mM", true))()
+
+end)
+
+local e = ESP:Button("The Most Shittest Esp Ever", function()
+----most shittest esp in the world
+
+
+if not executed_already then
+
+    if game.PlaceId == 292439477 then -- phantom forces characters fix
+        local replication;
+
+        for i,v in next, getgc(true) do
+            if type(v) == "table" and rawget(v,'getbodyparts') then
+                replication = v;
+            end
+        end
+
+        local characterparts = debug.getupvalue(replication.getbodyparts, 1)
+        local player = game:GetService("Players").LocalPlayer
+
+        function updater()
+            for person,bodyparts in next, characterparts do
+                local character = bodyparts['head'].Parent;
+                if not person.Character or character.Name ~= person.Name then
+                    character.Name = person.Name;
+                    person.Character = character;
+                end
+            end
+            local character = player.Character;
+            if character and character.Name == "Player" then
+                character.Name = player.Name;
+            end
+        end
+
+        game:GetService("RunService"):BindToRenderStep("CharacterUpdater", 1, updater)
+    end
+
+    getgenv().executed_already = true;
+    getgenv().skeleton_esp = true;
+    local plrs = game:GetService("Players")
+    local localplayer = plrs.LocalPlayer;
+    local camera = game:GetService("Workspace").CurrentCamera;
+    local enemy_color = Color3.fromRGB(255, 100, 100)
+    local team_color = Color3.fromRGB(100, 255, 100)
+
+    local function createESP(plr)
+        local shead = Drawing.new("Line")
+        shead.Thickness = 1;
+        shead.Color = enemy_color;
+
+        local srarm = Drawing.new("Line")
+        srarm.Thickness = 1;
+        srarm.Color = enemy_color;
+
+        local slarm = Drawing.new("Line")
+        slarm.Thickness = 1;
+        slarm.Color = enemy_color;
+
+        local srleg = Drawing.new("Line")
+        srleg.Thickness = 1;
+        srleg.Color = enemy_color;
+
+        local slleg = Drawing.new("Line")
+        slleg.Thickness = 1;
+        slleg.Color = enemy_color;
+
+        local name = plr.Name;
+
+        function esp_func()
+            if not skeleton_esp then
+                if shead.Visible then
+                    shead.Visible = false;
+                end
+                if srarm.Visible then
+                    srarm.Visible = false;
+                end
+                if slarm.Visible then
+                    slarm.Visible = false;
+                end
+                if srleg.Visible then
+                    srleg.Visible = false;
+                end
+                if slleg.Visible then
+                    slleg.Visible = false;
+                end
+                return;
+            end
+            if plr then
+                if not localplayer.Character then shead.Visible = false; srarm.Visible = false; slarm.Visible = false; srleg.Visible = false; slleg.Visible = false; return end
+                if not plr.Character then shead.Visible = false; srarm.Visible = false; slarm.Visible = false; srleg.Visible = false; slleg.Visible = false; return end
+                if not plr.Character.Head then shead.Visible = false; srarm.Visible = false; slarm.Visible = false; srleg.Visible = false; slleg.Visible = false; return end
+                if (camera.CFrame.p - plr.Character.Head.CFrame.p).magnitude >= 1500 then shead.Visible = false; srarm.Visible = false; slarm.Visible = false; srleg.Visible = false; slleg.Visible = false; return end
+
+                local char = plr.Character;
+
+                local head = char["Head"];
+                local torso = char["Torso"];
+                local rarm = char["Right Arm"];
+                local larm = char["Left Arm"];
+                local rleg = char["Right Leg"];
+                local lleg = char["Left Leg"];
+                local p1 = head.CFrame.Position;
+                local p2 = torso.CFrame.Position;
+                local p3 = rarm.CFrame.Position;
+                local p4 = larm.CFrame.Position;
+                local p5 = rleg.CFrame.Position;
+                local p6 = lleg.CFrame.Position;
+
+                local sp1,v1 = camera:WorldToViewportPoint(p1)
+                local sp2,v2 = camera:WorldToViewportPoint(p2)
+                local sp3,v3 = camera:WorldToViewportPoint(p3)
+                local sp4,v4 = camera:WorldToViewportPoint(p4)
+                local sp5,v5 = camera:WorldToViewportPoint(p5)
+                local sp6,v6 = camera:WorldToViewportPoint(p6)
+
+                if skeleton_esp and v1 then
+                    shead.From = Vector2.new(sp1.X, sp1.Y)
+                    shead.To = Vector2.new(sp2.X, sp2.Y)
+
+                    srarm.From = Vector2.new(sp2.X, sp2.Y)
+                    srarm.To = Vector2.new(sp3.X, sp3.Y)
+
+                    slarm.From = Vector2.new(sp2.X, sp2.Y)
+                    slarm.To = Vector2.new(sp4.X, sp4.Y)
+
+                    srleg.From = Vector2.new(sp2.X, sp2.Y)
+                    srleg.To = Vector2.new(sp5.X, sp5.Y)
+
+                    slleg.From = Vector2.new(sp2.X, sp2.Y)
+                    slleg.To = Vector2.new(sp6.X, sp6.Y)
+
+                    shead.Visible = true;
+                    srarm.Visible = true;
+                    slarm.Visible = true;
+                    srleg.Visible = true;
+                    slleg.Visible = true;
+                elseif not v1 then
+                    shead.Visible = false;
+                    srarm.Visible = false;
+                    slarm.Visible = false;
+                    srleg.Visible = false;
+                    slleg.Visible = false;
+                end
+
+                if plr.Team ~= localplayer.Team and shead.Color == team_color then
+                    shead.Color = enemy_color;
+                elseif plr.Team == localplayer.Team and shead.Color == enemy_color then
+                    shead.Color = team_color;
+                end
+
+                if plr.Team ~= localplayer.Team and srarm.Color == team_color then
+                    srarm.Color = enemy_color;
+                elseif plr.Team == localplayer.Team and srarm.Color == enemy_color then
+                    srarm.Color = team_color;
+                end
+
+                if plr.Team ~= localplayer.Team and slarm.Color == team_color then
+                    slarm.Color = enemy_color;
+                elseif plr.Team == localplayer.Team and slarm.Color == enemy_color then
+                    slarm.Color = team_color;
+                end
+
+                if plr.Team ~= localplayer.Team and srleg.Color == team_color then
+                    srleg.Color = enemy_color;
+                elseif plr.Team == localplayer.Team and srleg.Color == enemy_color then
+                    srleg.Color = team_color;
+                end
+
+                if plr.Team ~= localplayer.Team and slleg.Color == team_color then
+                    slleg.Color = enemy_color;
+                elseif plr.Team == localplayer.Team and slleg.Color == enemy_color then
+                    slleg.Color = team_color;
+                end
+            else
+                game:GetService("RunService"):UnbindFromRenderStep("ESP_" .. name)
+                shead.Visible = false;
+                shead:Destroy()
+
+                srarm.Visible = false;
+                srarm:Destroy()
+
+                slarm.Visible = false;
+                slarm:Destroy()
+
+                srleg.Visible = false;
+                srleg:Destroy()
+
+                slleg.Visible = false;
+                slleg:Destroy()
+            end
+        end
+
+        game:GetService("RunService"):BindToRenderStep("ESP_" .. name, 1, esp_func)
+    end
+
+
+    for _,plr in next, plrs:GetPlayers() do
+        if plr ~= localplayer then
+            createESP(plr)
+        end
+    end
+
+    plrs.PlayerAdded:connect(function(plr)
+        createESP(plr)
+    end)
+
+    return;
+end
+
+skeleton_esp = not skeleton_esp;
+end)
+
+local Misc = library:CreateWindow('Misc')
+
+
+Misc:Section("--== GUIS ==--")
+
+local e = Misc:Button("GUI #1", function()
+	loadstring(game:HttpGet(('https://raw.githubusercontent.com/mememasterboi/a-lot-of-scripts/master/Output%20(6).lua'),true))()
+
+end)
+
+
+local e = Misc:Button("Cattori Hub", function()
+_G.UITheme = "Jester" --Themes: Dark, Light, Jester, Mocha, Aqua
+	_G.ToggleKeyBind = Enum.KeyCode.RightShift
+	loadstring(game:HttpGet('https://cattori.xyz/main.lua'))()
+end)
+
+
+local e = Misc:Button("Owl Hub", function()
+local old
+old = hookfunction(game.HttpGetAsync, function(inst, url, state)
+   url = url:gsub('CriShoux', 'SiLeNSwOrD')
+   return old(inst, url, state)
+end)
+
+local old2
+old2 = hookfunction(game.HttpGet, function(inst, url, state)
+   url = url:gsub('CriShoux', 'SiLeNSwOrD')
+   return old2(inst, url, state)
+end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SiLeNSwOrD/OwlHub/master/OwlHub.txt"))();
+end)
+
+local e = Misc:Button("Exclusive Kiwi X GUI Leaked!", function()
+
+loadstring(game:HttpGet("https://pastebin.com/raw/ENVgEuhk", true))()
+end)
+
+local e = Misc:Button("V.G Hub", function()
+loadstring(game:HttpGet('https://raw.githubusercontent.com/1201for/V.G-Hub/main/V.Ghub'))()
+
+end)
+
+
+Misc:Section("--== Cool Scripts ==--")
+
+
+
+local e = Misc:Button("Kill All #1", function()
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "Lime X";
+		Text = "DONT Equip the knife before pressing!";
+	})
+loadstring(game:HttpGet("https://pastebin.com/raw/KW6eTT8N", true))()
+
+end)
+
+
+local e = Misc:Button("Kill All #2", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Straden/Scripts/main/kat.lua"))()
+
+end)
+
+local e = Misc:Button("Infinite Gun Ammo", function()
+local mt = getrawmetatable(game)
+setreadonly(mt,false)
+local nidx = mt.__newindex
+
+mt.__newindex = newcclosure(function(a,b,c)
+    if b == 'Text' and tostring(a.Name) == 'AmmoCounter' then
+        return nidx(a,b,math.huge..'/3')
+    end
+   
+    return nidx(a,b,c)
+end)
+
+local function Ammo()
+    for i, v in next, getgc(true) do
+        if type(v) == "table" and rawget(v, "LoadedAmmo") then
+            v.LoadedAmmo = math.huge
+        end
+    end
+end
+
+while wait(1) do
+    if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild('Revolver') then
+        spawn(function()
+            pcall(function()
+                game.Players.LocalPlayer.Character.Revolver.ClientEvent:FireServer("SetVisible", {[1] = false})
+               
+                wait(0.25)
+               
+                game.Players.LocalPlayer.Character.Revolver.ClientEvent:FireServer("SetVisible", {[1] = true})
+                game.Players.LocalPlayer.Character.Revolver.ClientEvent:FireServer("ReloadUpdate", {[1] = "Start"})
+               
+                wait(0.25)
+               
+                game.Players.LocalPlayer.Character.Revolver.ClientEvent:FireServer("ReloadUpdate", {[1] = "AmmoAdded"})
+               
+                Ammo()
+            end)
+        end)
+    end
+end
+end)
+
+
+local e = Misc:Button("Knife Spam  ", function()
+local NotificationBindable = Instance.new("BindableFunction")
+	NotificationBindable.OnInvoke = callback
+	--
+	game.StarterGui:SetCore("SendNotification",  {
+		Title = "Lime X";
+		Text = "Enable Knife Aura for better experince , also dont use knife power or it will lag and wont hit. ";
+		Icon = "";
+		Duration = math.huge;
+		Button = "OK Thanks";
+		Callback = NotificationBindable;
+		
+		})
+
+
+
+
+
+loadstring(game:HttpGet("https://textbin.net/raw/gyp6olnryl", true))()
+
+
+
+end)
+
+local e = Misc:Button("Knife/Gun Mods", function()
+
+
+local NotificationBindable = Instance.new("BindableFunction")
+	NotificationBindable.OnInvoke = callback
+	--
+	game.StarterGui:SetCore("SendNotification",  {
+		Title = "Lime X";
+		Text = "Credits to NAME4YOU#8501";
+		Icon = "";
+		Duration = math.huge;
+		Button2 = "OK";
+		Callback = NotificationBindable;
+		
+		})
+
+getgenv().FireRateWaitTime = 0.25
+loadstring(game:HttpGet("https://textbin.net/raw/zlemyriiw4", true))()
+end)
+
+
+local e = Misc:Button("No Knife Trow Cooldown", function()
+
+
+
+local NotificationBindable = Instance.new("BindableFunction")
+	NotificationBindable.OnInvoke = callback
+	--
+	game.StarterGui:SetCore("SendNotification",  {
+		Title = "Lime X";
+		Text = "Credits to NAME4YOU#8501";
+		Icon = "";
+		Duration = math.huge;
+		Button1 = "OK";
+		Callback = NotificationBindable;
+		
+		})
+
+
+local cons = {
+    [10] = 0,
+    [30] = 0.01
+}
+
+local KnifeClient = game.Players.LocalPlayer.Character:FindFirstChild('KnifeClient', true)
+
+if KnifeClient then
+    local KnifeClientS = getsenv(KnifeClient)
+   
+    table.foreach(cons, function(i,v)
+        setconstant(KnifeClientS.inputReleased, i, v)
+    end)
+   
+    local old = KnifeClientS.PlayAnimation
+   
+    KnifeClientS.PlayAnimation = newcclosure(function(...)
+        local Args = {...}
+       
+        if (Args[1] == 'Grab' or Args[1] == 'Charge' or string.find(Args[1], 'Slash')) then
+            Args[2] = 0.05
+            return old(unpack(Args))
+        end
+       
+        return old(...)
+    end)
+end
+
+game.Players.LocalPlayer.Character.ChildAdded:Connect(function(Child)
+    if Child.Name == 'Knife' then
+        local Element = getsenv(Child:FindFirstChild('KnifeClient', true))
+       
+        table.foreach(cons, function(i,v)
+            setconstant(Element.inputReleased, i, v)
+        end)
+       
+        local old = Element.PlayAnimation
+       
+        Element.PlayAnimation = newcclosure(function(...)
+            local Args = {...}
+           
+            if (Args[1] == 'Grab' or Args[1] == 'Charge' or string.find(Args[1], 'Slash')) then
+                Args[2] = 0.05
+                return old(unpack(Args))
+            end
+           
+            return old(...)
+        end)
+    end
+end)
+
+
+end)
+
+Misc:Section("--== Extra ==--")
+
+
+
+local e = Misc:Button("Speed Boost", function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/dMTadVqL", true))()
+
+end)
+
+
+local e = Misc:Button("Less Lag", function()
+loadstring(game:HttpGet("https://pastebin.com/raw/gX9mR85X", true))()
+
+end)
+
+local e = Misc:Button("Remove Water", function()
+for i,v in pairs(children) do
+		v:Destroy()
+	end
+
+
+	local descendants = game:GetService("Workspace").WorldIgnore.Ignore:GetDescendants()
+
+	for i,v in pairs(descendants) do
+		if v.Name == "Water" then
+			v:Destroy()
+
+		end
+
+		local Descendants = game:GetService("Workspace").WorldIgnore.MapEffects:GetDescendants()
+
+		for i,v in pairs(Descendants) do
+			if v.Name == "WaterPosition" then
+				v:Destroy()
+
+			end
+
+		end
+	end
+end)
+
+
+local e = Misc:Button("God Bullet (Cant Kill)", function()
+game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "Lime X";
+		Text = "You cant kill with godmode! Reset To Disable it";
+	})
+	
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "Lime X";
+		Text = "You can still die if someone knifes you!";
+	})
+	
+	local player = game.Players.LocalPlayer
+	while true do
+		wait()
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+			game.Workspace[player.Character.Name].CollisionParts:Destroy()
+		end
+	end
+end)
+
+
+
+
+    local NotificationBindable = Instance.new("BindableFunction")
+	NotificationBindable.OnInvoke = callback
+	--
+	game.StarterGui:SetCore("SendNotification",  {
+		Title = "Lime X UI";
+		Text = "Press L To Toggle The UI!";
+		Icon = "";
+		Duration = math.huge;
+		Button1 = "OK";
+		Callback = NotificationBindable;
+	})
+    
+game:GetService("StarterGui"):SetCore("SendNotification", {
+	Title = "Lime X! Credits";
+	Text = "subscribe to GOLDEN cheats ON YOUTUBE!";
+})
+
